@@ -15,8 +15,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query(name = "Category.findHierarchy", nativeQuery = true)
     List<Category> getHierarchy();
 
-    @Procedure(name = "Category.refreshCategoryStatistic")
-    void refreshCategoryStatistics();
+//    @Procedure(name = "Category.refreshCategoryStatistic")
+//    void refreshCategoryStatistics();
 
 //    @Query(name = "Category.findHierarchyIds", nativeQuery = true)
 //    List<Long> getHierarchyIds(@Param("categoriesId") List<Long> categoriesId);

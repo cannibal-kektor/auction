@@ -29,14 +29,14 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Transactional
     @Override
-    public CategoryDto create(CategoryDto.Request createDTO) {
+    public CategoryDto create(CategoryDto createDTO) {
         var category = categoryRepository.save(mapper.toModel(createDTO));
         return mapper.toDto(category);
     }
 
     @Transactional
     @Override
-    public CategoryDto update(Long categoryId, CategoryDto.Request updateDTO) {
+    public CategoryDto update(Long categoryId, CategoryDto updateDTO) {
         return categoryRepository.findById(categoryId)
                 .map(category -> {
                     mapper.update(updateDTO, category);

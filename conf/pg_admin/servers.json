@@ -1,0 +1,15 @@
+{
+  "Servers": {
+    "1": {
+      "Group": "Servers",
+      "Name": "Auction Category",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "${POSTGRES_USER}",
+      "Password": "${POSTGRES_PASSWORD}",
+      "SSLMode": "prefer",
+      "Favorite": true
+    }
+  }
+}

@@ -8,19 +8,17 @@ import org.mapstruct.*;
 @Mapper(config = MapConfig.class)
 public interface CategoryMapper {
 
-    String CATEGORY_DEFAULT = "DefaultMapping";
-
-    @Named(CATEGORY_DEFAULT)
     @Mapping(source = "parent.id", target = "parentId")
     CategoryDto toDto(Category category);
 
-    @Mapping(source = "parentId", target = "parent")
-    Category toModel(CategoryDto.Request categoryDTO);
+//    @Mapping(source = "parentId", target = "parent")
+    @InheritInverseConfiguration
+    Category toModel(CategoryDto categoryDTO);
 
     //@Mapping(source = PARENTID, target = PARENT) - сделано так,потому что, если указывать через parent.id, то parent (new Category)
     // всегда будет создаваться и сетаться на MappingTarget(даже если parentId это null) не зависимо от настроенной политики
     @InheritConfiguration
-    Category update(CategoryDto.Request categoryDTO, @MappingTarget Category category);
+    Category update(CategoryDto categoryDTO, @MappingTarget Category category);
 
     @Mapping(source = "parentId", target = "id")
     Category idToParent(Long parentId);

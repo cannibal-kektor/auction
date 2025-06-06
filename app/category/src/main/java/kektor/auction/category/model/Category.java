@@ -18,7 +18,7 @@ public class Category {
     public static final String ID_GENERATOR_SEQUENCE_NAME = "ID_SEQUENCE_GENERATOR";
 
     @Id
-    @SequenceGenerator(name = ID_GENERATOR, sequenceName = ID_GENERATOR_SEQUENCE_NAME)
+    @SequenceGenerator(name = ID_GENERATOR, sequenceName = ID_GENERATOR_SEQUENCE_NAME, initialValue = 100)
     @GeneratedValue(generator = ID_GENERATOR)
     Long id;
 

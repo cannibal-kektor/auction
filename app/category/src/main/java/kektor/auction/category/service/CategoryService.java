@@ -8,10 +8,10 @@ public interface CategoryService {
     CategoryDto get(Long categoryId);
 
     @Transactional
-    CategoryDto create(CategoryDto.Request categoryDTO);
+    CategoryDto create(CategoryDto categoryDTO);
 
     @Transactional
-    CategoryDto update(Long categoryId, CategoryDto.Request categoryDTO);
+    CategoryDto update(Long categoryId, CategoryDto categoryDTO);
 
 
 }

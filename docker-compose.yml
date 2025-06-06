@@ -1,0 +1,119 @@
+name: auction
+
+services:
+
+
+#  auctionCategories:
+#    build:
+#      context: ./app
+#      dockerfile: ./bot/Dockerfile
+#      additional_contexts:
+#        cert_conf: conf/build
+#      secrets:
+#        - bot_credentials
+#    depends_on:
+#      rabbit01:
+#        condition: service_healthy
+#      elastic01:
+#        condition: service_healthy
+#      mongo01:
+#        condition: service_healthy
+#      setup-mongo:
+#        condition: service_completed_successfully
+#      elastic-agent:
+#        condition: service_started
+#    image: multisearch-telegram-bot
+#    #    ports:
+#    #      - "5005:5005"
+#    healthcheck:
+#      test: [ "CMD-SHELL", "test -f /tmp/healthy || exit 1" ]
+#      interval: 30s
+#      timeout: 5s
+#    secrets:
+#      - source: bot_credentials
+#        target: /run/secrets/bot_credentials
+#        uid: "1000"
+#        gid: "1000"
+#        mode: 0400
+#    environment:
+#      SPRING_CONFIG_IMPORT: file:/run/secrets/bot_credentials[.properties]
+#    volumes:
+#      - app-client-cert:/app/certs:ro
+#    labels:
+#      - "monitor-ecs"
+#    networks:
+#      - rabbitmq-net
+#      - mongo-net
+#      - elastic-net
+
+  postgres:
+    image: postgres:17.5-alpine
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD:  ${POSTGRES_PASSWORD}
+      POSTGRES_DB: auction
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./conf/category:/docker-entrypoint-initdb.d
+    #    deploy:
+    #      resources:
+    #        limits:
+    #          cpus: '0.50'
+    #          memory: 512M
+    #        reservations:
+    #          cpus: '0.25'
+    #          memory: 256M
+    command: >
+      postgres -c max_connections=1000
+               -c shared_buffers=256MB
+               -c effective_cache_size=768MB
+               -c maintenance_work_mem=64MB
+               -c checkpoint_completion_target=0.7
+               -c wal_buffers=16MB
+               -c default_statistics_target=100
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d auction" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+  #    tty: true
+  #    stdin_open: true
+    networks:
+      - postgres
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "kektor@kek.com"
+      PGADMIN_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD:  ${POSTGRES_PASSWORD}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./conf/pg_admin/servers.json:/pgadmin4/servers.json
+    ports:
+      - "${PG_ADMIN_PORT}:80"
+    restart: unless-stopped
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '0.5'
+#          memory: 1G
+    networks:
+      - postgres
+
+
+networks:
+  postgres:
+
+volumes:
+  pgdata:
+  pgadmin-data:

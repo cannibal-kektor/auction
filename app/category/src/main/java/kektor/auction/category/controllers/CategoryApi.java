@@ -3,6 +3,7 @@ package kektor.auction.category.controllers;
 import jakarta.validation.constraints.Positive;
 import kektor.auction.category.dto.CategoryDto;
 import kektor.auction.category.service.CategoryService;
+import kektor.auction.category.validation.Validate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,14 +28,14 @@ public class CategoryApi {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Callable<CategoryDto> create(@RequestBody @Validated CategoryDto.Request createDTO) {
+    public Callable<CategoryDto> create(@RequestBody @Validated(Validate.Create.class) CategoryDto createDTO) {
         return () -> categoryService.create(createDTO);
     }
 
     @PutMapping(path = "/{categoryId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Callable<CategoryDto> update(
             @PathVariable("categoryId") @Positive Long categoryId,
-            @RequestBody @Validated CategoryDto.Request updateDTO) {
+            @RequestBody @Validated(Validate.Update.class) CategoryDto updateDTO) {
         return () -> categoryService.update(categoryId, updateDTO);
     }
 
