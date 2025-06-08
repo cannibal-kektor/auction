@@ -4,6 +4,8 @@ import kektor.auction.category.dto.CategoryDto;
 import kektor.auction.category.model.Category;
 import org.mapstruct.*;
 
+import java.util.List;
+
 
 @Mapper(config = MapConfig.class)
 public interface CategoryMapper {
@@ -23,4 +25,5 @@ public interface CategoryMapper {
     @Mapping(source = "parentId", target = "id")
     Category idToParent(Long parentId);
 
+    List<CategoryDto> toDto(List<Category> entities);
 }

@@ -10,19 +10,20 @@ import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 
 
 @RestController
 @Validated
 @RequiredArgsConstructor
-@RequestMapping(path = "/categories", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/api", produces = MediaType.APPLICATION_JSON_VALUE)
 public class CategoryApi {
 
     final CategoryService categoryService;
 
-    @GetMapping("/{categoryId}")
-    public Callable<CategoryDto> get(@PathVariable("categoryId") @Positive Long categoryId) {
+    @GetMapping("/{id}")
+    public Callable<CategoryDto> get(@PathVariable("id") @Positive Long categoryId) {
         return () -> categoryService.get(categoryId);
     }
 
@@ -32,11 +33,29 @@ public class CategoryApi {
         return () -> categoryService.create(createDTO);
     }
 
-    @PutMapping(path = "/{categoryId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Callable<CategoryDto> update(
-            @PathVariable("categoryId") @Positive Long categoryId,
+            @PathVariable("id") @Positive Long categoryId,
             @RequestBody @Validated(Validate.Update.class) CategoryDto updateDTO) {
         return () -> categoryService.update(categoryId, updateDTO);
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Callable<Void> delete(@PathVariable("id") @Positive Long categoryId) {
+        return () -> {
+            categoryService.delete(categoryId);
+            return null;
+        };
+    }
+
+    @GetMapping
+    public Callable<List<CategoryDto>> getAll() {
+        return categoryService::getAll;
+    }
+
+    @GetMapping("/bulk")
+    public Callable<List<CategoryDto>> getBulk(List<Long> categoryIds) {
+        return () -> categoryService.getBulk(categoryIds);
+    }
 }

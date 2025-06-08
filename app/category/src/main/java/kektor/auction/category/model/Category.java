@@ -11,11 +11,11 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "CATEGORY",
-        uniqueConstraints = @UniqueConstraint(name = "UK_CATEGORY_NAME", columnNames = {"name"}))
+        uniqueConstraints = @UniqueConstraint(name = "uk_category_name", columnNames = {"name"}))
 public class Category {
 
     public static final String ID_GENERATOR = "ID_GENERATOR";
-    public static final String ID_GENERATOR_SEQUENCE_NAME = "ID_SEQUENCE_GENERATOR";
+    public static final String ID_GENERATOR_SEQUENCE_NAME = "id_sequence_generator";
 
     @Id
     @SequenceGenerator(name = ID_GENERATOR, sequenceName = ID_GENERATOR_SEQUENCE_NAME, initialValue = 100)
@@ -28,8 +28,8 @@ public class Category {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "PARENT_ID",
-            foreignKey = @ForeignKey(name = "FK_CATEGORY_PARENT_ID")
+            name = "parent_id",
+            foreignKey = @ForeignKey(name = "fk_parent")
     )
     Category parent;
 

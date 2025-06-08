@@ -1,19 +1,4 @@
 debug: true
-#trace: true
-
-
-#management:
-#  endpoint:
-#    health:
-#      show-details: ALWAYS
-#      show-components: ALWAYS
-#    env:
-#      show-values: ALWAYS
-#  endpoints:
-#    web:
-#      exposure:
-#        include: "*"
-
 
 spring:
   application:
@@ -22,47 +7,19 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration
 
-  #MessageSourceAutoConfiguration------------
-  messages:
-    basename: localization/messages
-    use-code-as-default-message: false
-    fallback-to-system-locale: false
-    encoding: UTF-8
-    always-use-message-format: false
-    cache-duration: -1
-  #-------------------------------------------
-
-
-  #---LifecycleAutoConfiguration--------------
-#  lifecycle:
-#    timeout-per-shutdown-phase: 30s
-  #-------------------------------------------
+#  #MessageSourceAutoConfiguration------------
+#  messages:
+#    basename: localization/messages
+#    use-code-as-default-message: false
+#    fallback-to-system-locale: false
+#    encoding: UTF-8
+#    always-use-message-format: false
+#    cache-duration: -1
+#  #-------------------------------------------
 
   #--JacksonAutoConfiguration------------------------
   jackson:
-  #    constructor-detector:
-  #    date-format:
-  #    default-leniency:
       default-property-inclusion: always
-  #    locale:
-  #    property-naming-strategy:
-  #    time-zone:
-  #    visibility:
-  #      GETTER: NON_PRIVATE
-  #      //other mappings
-  #    mapper:
-  #      default-view-inclusion: true
-  #      //mapper features
-  #    deserialization:
-  #      //deserialization features
-  #    serialization:
-  #      //serialization features
-  #    generator:
-  #      //generator features
-  #    parser:
-  #      //parser features
-  #------------------------------------------------
-
 
   #--TaskExecutionAutoConfiguration------------------------
   task:
@@ -78,66 +35,16 @@ spring:
         await-termination: true
         await-termination-period: PT30S  #60 sec example - P3DT5H40M30S = 3Days, 5Hours, 40 Minutes and 30 Seconds
 
-
-
-
   # ---DataSourceAutoConfiguration--------------------------------------
   datasource:
-#    driver-class-name: org.postgresql.Driver #Auto-detected based on the URL by default
-#    type: com.zaxxer.hikari.HikariDataSource #Fully qualified name of the connection pool implementation to use. By default, it is auto-detected from the classpath.
     url: jdbc:postgresql://localhost:5430/auction
     username: testUser
     password: testPassword
-#    jndi-name:
-#    embedded-database-connection: NONE|H2|DERBY|HSQLDB
-#    name:
-#    generate-unique-name: true
 
     hikari:
-#      allow-pool-suspension:
-#      auto-commit:
-#      catalog:
-#      connection-init-sql:
-#      connection-test-query:
       connection-timeout: 20000
-#      data-source-class-name:
-#      data-source-j-n-d-i:
-#      data-source-properties:
-#      driver-class-name:
-#      exception-override-class-name:
-#      health-check-properties:
-#      idle-timeout:
-#      initialization-fail-timeout:
-#      isolate-internal-queries:
-#      jdbc-url:
-#      keepalive-time:
-#      leak-detection-threshold:
-#      login-timeout:
       max-lifetime: 500000
       maximum-pool-size: 10
-#      metrics-tracker-factory:
-#      minimum-idle:
-#      password:
-#      pool-name:
-#      read-only:
-#      register-mbeans:
-#      scheduled-executor:
-#      schema:
-#      transaction-isolation:
-#      username:
-#      validation-timeout:
-
-  # -----------------------------------------------------
-
- #---JdbcTemplateAutoConfiguration-------------------------------
-
-#  jdbc:
-#    template:
-#      fetch-size: -1
-#      max-rows: -1
-#      query-timeout:
-
-  # -----------------------------------------------------
 
 #---------TransactionAutoConfiguration---------------------------------
 
@@ -151,78 +58,15 @@ spring:
       repositories:
         enabled: true
         bootstrap-mode: deferred
-#        bootstrap-mode: deferred|lazy|default
-
     #-----------------------------------------------------------
-  #-----SqlInitializationAutoConfiguration-------------------------
-#  sql:
-#    init:
-#      enabled: true
-#      mode: always #    By default, SQL database initialization is only performed when using an embedded in-memory database. To always initialize an SQL database, irrespective of its type, set spring.sql.init.mode to always
-#      platform: #Можно тогда использовать специфичные schema-${platform}.sql data-${platform}.sql
-#      data-locations:
-#      schema-locations:
-#      encoding: UTF-8
-#      continue-on-error: false
-#      separator: ;
-#      username:
-#      password:
-
-  # -----------------------------------------------------------------
 
   jpa:
-#    database: DEFAULT|DB2|DERBY|H2|HANA|HSQL|INFORMIX|MYSQL|ORACLE|POSTGRESQL|SQL_SERVER|SYBASE #Target database to operate on, auto-detected by default. Can be alternatively set using the "databasePlatform" property.
-#    database-platform: #Name of the target database to operate on, auto-detected by default. Can be alternatively set using the "Database" enum.
-    #    Script-based DataSource initialization is performed, by default, before any JPA EntityManagerFactory
-    #  beans are created. schema.sql can be used to create the schema for JPA-managed entities and data.sql can
-    #  be used to populate it. While we do not recommend using multiple data source initialization technologies,
-    #  if you want script-based DataSource initialization to be able to build upon the schema creation performed
-    #  by Hibernate, set spring.jpa.defer-datasource-initialization to true. This will defer data source initialization
-    #  until after any EntityManagerFactory beans have been created and initialized. schema.sql can then be used to make
-    #  additions to any schema creation performed by Hibernate and data.sql can be used to populate it.
-#    defer-datasource-initialization: true #Whether to defer DataSource initialization until after any EntityManagerFactory beans have been created and initialized
-#
     open-in-view: false #Register OpenEntityManagerInViewInterceptor. Binds a JPA EntityManager to the thread for the entire processing of the request
-#    mapping-resources: #Mapping resources (equivalent to "mapping-file" entries in persistence.xml).
-
     show-sql: true
-
-    #JPA has features for DDL generation, and these can be set up to run on startup against the database. This is controlled through two external properties:
-    #  spring.jpa.generate-ddl (boolean) switches the feature on and off and is vendor independent.
-    #  spring.jpa.hibernate.ddl-auto (enum) is a Hibernate feature that controls the behavior in a more fine-grained way. This feature is described in more detail later in this guide.
-#    generate-ddl: false
     hibernate:
       ddl-auto: validate
-#      naming:
-#        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-#        implicit-strategy:
     properties:
-# Альтернатива для генерации схемы и загрузки данных + возможность записать в файл скрипт генерации -
-#  Вместо (spring.generate-ddl: true и spring.hibernate.ddl-auto (то есть не использовать Spring Boot SqlDataSourceScriptDatabaseInitializer из SqlInitializationAutoConfiguration))
-#  Использовать spring.jpa.properties.jakarta.persistence.* - Смотри в org.hibernate.cfg.AvailableSettings
-# + тогда можно убрать defer-datasource-initialization: true
-# + тогда можно установить spring.sql.init.enabled=false
-# + нужно указать spring.jpa.properties.hibernate.hbm2ddl.import_files_sql_extractor: org.hibernate.tool.schema.internal.script.MultiLineSqlScriptExtractor
-#
-#      jakarta:
-#        persistence:
-#          schema-generation:
-#            database:
-#              action: drop-and-create
-#            create-source: metadata
-#            create-source: metadata-then-script
-#            create-script-source: schemaKek.sql (доп скрипт для генерации схемы)
-#            drop-source: metadata
-#            drop-script-source: MyDrop.sql
-#            scripts:    # Генерация скрипта в файл
-#              action: create
-#              create-target: GeneratedCreate.sql
-#              drop-target: GeneratedDrop.sql
-#          sql-load-script-source: dataKek.sql  # Загрузка данных
-
       hibernate:
-#        hbm2ddl:
-#          import_files_sql_extractor: org.hibernate.tool.schema.internal.script.MultiLineSqlScriptExtractor #Многострочные выражения
         show_sql: true
         format_sql: true
         use_sql_comments: true
@@ -232,7 +76,6 @@ spring:
 #        batch_versioned_data: true
 #        jdbc:
 #          batch_size: 100
-
 #org.hibernate.cfg.AvailableSettings В самом классе и в пакете все конфигурационные настройки Hibernate
 # Добавляются в spring.jpa.properties.*
 
@@ -241,37 +84,6 @@ spring:
   web:
     resources:
       add-mappings: false  # проброс NoHandlerFoundException чтобы обрабатывать его в нашем @ControllerAdvice
-#      static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
-#      cache:
-#        period:
-#        use-last-modified: true
-#        cachecontrol:
-#          cache-private: true
-#          cache-public: false
-#          max-age:
-#          must-revalidate: true
-#          no-cache: true
-#          no-store: true
-#          no-transform: true
-#          proxy-revalidate: true
-#          s-max-age:
-#          stale-if-error:
-#          stale-while-revalidate:
-#      chain:
-#        enabled: false
-#        cache: true
-#        compressed: true
-#        strategy:
-#          content:
-#            enabled: false
-#            paths: /**
-#          fixed:
-#            enabled: false
-#            paths: /**
-#            version:
-#    locale-resolver: ACCEPT_HEADER
-#    locale:
-
 #  mvc:
 #    dispatch-options-request: true
 #    dispatch-trace-request: true
@@ -340,10 +152,6 @@ logging:
           descriptor:
             sql:
               BasicBinder: TRACE
-#    com:
-#      zaxxer:
-#        hikari: DEBUG
-#    root: info
 
 #org:
 #  springframework:
@@ -359,7 +167,7 @@ server:
 #------ServletWebServerFactoryAutoConfiguration-----------------------
   address: 0.0.0.0 #https://stackoverflow.com/questions/23946369/how-to-configure-embedded-tomcat-integrated-with-spring-to-listen-requests-to-ip By default tomcat will bind to 0.0.0.0 and listen on all available addresses. There must be an environment restriction on the other addresses or ports if they are not working (like a firewall) . Simply add in application.properties file: server.address=0.0.0.0
   port: 8080
-  server-header: TestServer
+  server-header: Category Service Server
 #  forward-headers-strategy: NATIVE|FRAMEWORK|NONE
 #  max-http-request-header-size: 8KB
 #  shutdown: graceful|immediate
@@ -389,22 +197,6 @@ server:
 # --------------------------------------------------------------
     jsp:
       registered: false
-#      class-name: org.apache.jasper.servlet.JspServlet
-#      init-parameters.testParam: testValue
-#    session:
-#      cookie:
-#        domain:
-#        path:
-#        name:
-#        comment:
-#        http-only:
-#        max-age:
-#        same-site:
-#        secure:
-#      timeout:
-#      persistent: true
-#      session-store-directory:
-#      tracking-modes: COOKIE | URL | SSL
 
 #---------------------------------------------------------------------------
 

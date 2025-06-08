@@ -1,22 +1,20 @@
 BEGIN;
 
--- structure setup
+create sequence if not exists id_sequence_generator start with 100 increment by 50;
 
-create sequence id_sequence_generator start with 1 increment by 100;
-
-create table category (
-                          id bigint not null,
-                          parent_id bigint,
-                          name varchar(20) not null,
-                          primary key (id),
-                          constraint UK_CATEGORY_NAME unique (name)
+create table if not exists category
+(
+    id        bigint      not null,
+    parent_id bigint,
+    name      varchar(20) not null,
+    primary key (id),
+    constraint uk_category_name unique (name)
 );
 
 alter table if exists category
-    add constraint FK_CATEGORY_PARENT_ID
+    add constraint fk_parent
         foreign key (parent_id)
-            references category;
+            references category ON DELETE RESTRICT ;
 
--- data setup
--- ...
+
 COMMIT;

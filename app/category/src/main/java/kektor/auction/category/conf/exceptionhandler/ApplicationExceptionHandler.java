@@ -1,7 +1,8 @@
-package kektor.auction.category.conf.exception;
+package kektor.auction.category.conf.exceptionhandler;
 
 import jakarta.validation.ConstraintViolationException;
 import kektor.auction.category.service.exception.ResourceNotFoundException;
+import kektor.auction.category.service.exception.RestrictParentDeletionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -30,6 +31,13 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         return ErrorResponse.builder(ex, HttpStatus.NOT_FOUND, ex.getMessage())
                 .property("resource", ex.getResourceClass().getSimpleName())
                 .property("resourceId", ex.getResourceId())
+                .build();
+    }
+
+    @ExceptionHandler(RestrictParentDeletionException.class)
+    ErrorResponse handleRestrictParentDeletionException(RestrictParentDeletionException ex) {
+        return ErrorResponse.builder(ex, HttpStatus.BAD_REQUEST, ex.getMessage())
+                .property("parentId", ex.getParentId())
                 .build();
     }
 
@@ -95,7 +103,6 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
             Exception ex) {
         return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
-
 
 
     @ExceptionHandler(Exception.class)

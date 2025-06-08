@@ -1,14 +1,10 @@
 package kektor.auction.category.conf;
 
 
-import kektor.auction.category.conf.exception.ApplicationUncaughtExceptionHandler;
+import kektor.auction.category.conf.exceptionhandler.ApplicationUncaughtExceptionHandler;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.SchedulingConfigurer;
-import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 @Configuration
 //@EnableAsync

@@ -1,4 +1,4 @@
-package kektor.auction.category.conf.exception;
+package kektor.auction.category.conf.exceptionhandler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
