@@ -14,11 +14,14 @@ public interface CategoryMapper {
     CategoryDto toDto(Category category);
 
 //    @Mapping(source = "parentId", target = "parent")
-    @InheritInverseConfiguration
+//    @InheritInverseConfiguration
+//    @Mapping(source = "parentId", target = "parent.id", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(source = "parentId", target = "parent")
     Category toModel(CategoryDto categoryDTO);
 
     //@Mapping(source = PARENTID, target = PARENT) - сделано так,потому что, если указывать через parent.id, то parent (new Category)
     // всегда будет создаваться и сетаться на MappingTarget(даже если parentId это null) не зависимо от настроенной политики
+    @Mapping(target = "id", ignore = true)
     @InheritConfiguration
     Category update(CategoryDto categoryDTO, @MappingTarget Category category);
 

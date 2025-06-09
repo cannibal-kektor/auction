@@ -54,8 +54,8 @@ public class CategoryApi {
         return categoryService::getAll;
     }
 
-    @GetMapping("/bulk")
-    public Callable<List<CategoryDto>> getBulk(List<Long> categoryIds) {
+    @GetMapping("/bulk/{ids}")
+    public Callable<List<CategoryDto>> getBulk(@PathVariable("ids") List<Long> categoryIds) {
         return () -> categoryService.getBulk(categoryIds);
     }
 }

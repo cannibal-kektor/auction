@@ -1,4 +1,4 @@
-package kektor.auction.category.service.exception;
+package kektor.auction.category.exception;
 
 
 import lombok.Getter;

@@ -1,9 +1,6 @@
 package kektor.auction.category.conf;
 
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -11,6 +8,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 //@EnableTransactionManagement
 public class MvcConfig implements WebMvcConfigurer {
 
+
+//        @Bean
+////    @Primary
+//    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+//    public static LocalValidatorFactoryBean defaultValidator(ApplicationContext applicationContext,
+//                                                             ObjectProvider<ValidationConfigurationCustomizer> customizers) {
+//        LocalValidatorFactoryBean factoryBean = new LocalValidatorFactoryBean();
+//        factoryBean.setConfigurationInitializer((configuration) -> customizers.orderedStream()
+//                .forEach((customizer) -> customizer.customize(configuration)));
+//        MessageInterpolatorFactory interpolatorFactory = new MessageInterpolatorFactory(applicationContext);
+//        factoryBean.setMessageInterpolator(interpolatorFactory.getObject());
+//        return factoryBean;
+//    }
 
 //    @Override
 //    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
