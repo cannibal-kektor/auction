@@ -19,6 +19,6 @@ public interface CategoryServiceClient {
     @GetExchange
     List<CategoryDto> getAllCategories();
 
-    @GetExchange("/bulk")
-    List<CategoryDto> getCategoriesBulk(@RequestParam("ids") Set<Long> ids);
+    @GetExchange("/bulk/{ids}")
+    List<CategoryDto> getCategoriesBulk(@PathVariable("ids") Set<Long> ids);
 }

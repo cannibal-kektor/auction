@@ -20,7 +20,7 @@ import java.util.concurrent.Callable;
 @RestController
 @Validated
 @RequiredArgsConstructor
-@RequestMapping(path = "/lots", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/api", produces = MediaType.APPLICATION_JSON_VALUE)
 public class LotApi {
 
     final LotService lotService;

@@ -58,7 +58,7 @@ public class CategoryCacheService {
         if (ids == null || ids.isEmpty()) {
             return Collections.emptySet();
         }
-        var result = cache.getAllPresent(ids);
+        var result = new HashMap<>(cache.getAllPresent(ids));
         Set<Long> missingIds = ids.stream()
                 .filter(id -> !result.containsKey(id))
                 .collect(toSet());
@@ -92,7 +92,7 @@ public class CategoryCacheService {
     }
 
 
-    @CacheEvict(allEntries = true)
+    @CacheEvict(allEntries = true, beforeInvocation = true)
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void refreshAllCategories() {
         var freshCategories = categoryClient.getAllCategories();
