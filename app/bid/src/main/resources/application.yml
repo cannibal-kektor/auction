@@ -1,0 +1,502 @@
+debug: true
+app:
+  kafka:
+    placed-bid : bid.placed
+    category.event-topic: category.event.auction
+
+spring:
+  application:
+    name: Auction-Bid
+  main.banner-mode: off
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration
+
+  #MessageSourceAutoConfiguration------------
+  messages:
+    basename: localization/messages
+    use-code-as-default-message: false
+    fallback-to-system-locale: false
+    encoding: UTF-8
+    always-use-message-format: false
+    cache-duration: -1
+  #-------------------------------------------
+
+#  cache:
+#    cache-names: categories
+#    type: caffeine
+#    caffeine:
+#      spec: maximumSize=500, expireAfterWrite=1h
+
+  #--JacksonAutoConfiguration------------------------
+  jackson:
+      default-property-inclusion: always
+
+  #--TaskExecutionAutoConfiguration------------------------
+  task:
+    execution:
+      threadNamePrefix: Auction-Bid-Thread-
+      pool:
+        core-size: 5
+        max-size: 10
+        allow-core-thread-timeout: true
+        keep-alive: PT30S
+        queue-capacity: 200
+      shutdown:
+        await-termination: true
+        await-termination-period: PT30S  #60 sec example - P3DT5H40M30S = 3Days, 5Hours, 40 Minutes and 30 Seconds
+  #-----TaskSchedulingAutoConfiguration-----------------------
+    scheduling:
+      threadNamePrefix: Auction-Bid-Scheduling-Thread-
+      pool:
+        size: 1
+      shutdown:
+        await-termination: true
+        await-termination-period: PT10S
+  # -----------------------------------------------------
+
+  # ---KafkaAutoConfiguration--------------------------------------
+  kafka:
+    bootstrap-servers: localhost:9092
+    #    bootstrap-servers: kafka01:9092
+    client-id: ${HOSTNAME}
+    #    security:
+    #      protocol:
+    #    ssl:
+    #      bundle:
+    #    properties:
+    #      #       Тип, для которого определяем конкретные сериализаторы
+    #      spring.json.value.default.type: ru.home.kafka.dto.JsonMessage
+    #      spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+    #      spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+
+    #    admin:
+    #      auto-create: true
+    #      client-id: ${HOSTNAME}
+    #      close-timeout:
+    #      fail-fast: false
+    #      modify-topic-configs: false
+    #      operation-timeout:
+    #      security:
+    #        protocol:
+    #      ssl:
+    #        bundle:
+    #        protocol:
+
+    listener:
+      ack-mode: record
+      log-container-config: true
+      missing-topics-fatal: true
+    #      concurrency: #in annotation
+    #      auto-startup: true
+    #      async-acks: false
+    #      type: single
+    #      ack-count:
+    #      ack-time:
+    #      auth-exception-retry-interval:
+    #      change-consumer-thread-name: false
+    #      client-id: ${HOSTNAME}
+    #      idle-between-polls: 0
+    #      idle-event-interval:
+    #      idle-partition-event-interval:
+    #      immediate-stop: false
+    #      monitor-interval:
+    #      observation-enabled: false
+    #      poll-timeout:
+    #      no-poll-threshold:
+
+    consumer:
+#      group-id: ${spring.application.name}
+#      group-id: ${HOSTNAME}
+#      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
+#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: latest
+#      bootstrap-servers:
+#      enable-auto-commit: false
+#      auto-commit-interval:
+#      client-id: ${HOSTNAME}
+#      fetch-max-wait:
+#      fetch-min-size:
+#      heartbeat-interval:
+#      isolation-level: read-uncommitted
+#      max-poll-interval:
+#      max-poll-records:
+#      security:
+#        protocol:
+#      ssl:
+#        bundle:
+#      properties:
+#        test:
+
+    #    template:
+    #      default-topic:
+    #      observation-enabled: false
+    #      transaction-id-prefix:
+
+    producer:
+      #      bootstrap-servers:
+      acks: 1
+      batch-size: 0
+      #      buffer-memory:
+      #      client-id: ${HOSTNAME}
+      #      compression-type:
+#      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      #      transaction-id-prefix:
+      #      security:
+      #        protocol:
+      #      ssl:
+      #        bundle:
+      properties:
+        request.timeout.ms: 10000
+
+
+  #    retry:
+  #      topic:
+  #        enabled: false
+  #        attempts: 3
+  #        backoff:
+  #          delay: 1s
+  #          max-delay: 0
+  #          multiplier: 0
+  #          random: false
+
+  #    streams:
+  #      application-id:
+
+
+  # ---DataSourceAutoConfiguration--------------------------------------
+  datasource:
+    url: jdbc:postgresql://localhost:5432/auction
+    username: testUser
+    password: testPassword
+
+    hikari:
+      connection-timeout: 200000
+      max-lifetime: 500000
+      maximum-pool-size: 10
+
+  # -----------------------------------------------------
+
+#---------TransactionAutoConfiguration---------------------------------
+
+  transaction:
+    default-timeout: PT300S
+#    rollback-on-commit-failure:
+
+  # -----------------------------------------------------
+
+
+  data:
+    #-----JpaRepositoriesAutoConfiguration-------------------------
+    jpa:
+      repositories:
+        enabled: true
+        bootstrap-mode: deferred
+    #-----------------------------------------------------------
+
+
+  # -----------------------------------------------------------------
+
+  jpa:
+    open-in-view: false #Register OpenEntityManagerInViewInterceptor. Binds a JPA EntityManager to the thread for the entire processing of the request
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+    properties:
+  #    jakarta:
+  #      persistence:
+  #        schema-generation:
+# #           database:
+# #             action: drop-and-create
+  #          create-source: metadata
+# #           create-source: metadata-then-script
+# #           create-script-source: schemaKek.sql (доп скрипт для генерации схемы)
+  #          drop-source: metadata
+# #           drop-script-source: MyDrop.sql
+  #          scripts:    # Генерация скрипта в файл
+  #            action: drop-and-create
+  #            create-target: ./lot/GeneratedCreate.sql
+  #            drop-target: ./lot/GeneratedDrop.sql
+# #         sql-load-script-source: dataKek.sql  # Загрузка данных
+
+      hibernate:
+#        hbm2ddl:
+#          import_files_sql_extractor: org.hibernate.tool.schema.internal.script.MultiLineSqlScriptExtractor #Многострочные выражения
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+#        generate_statistics: true
+#        order_inserts: true
+#        batch_versioned_data: true
+#        jdbc:
+#          batch_size: 100
+
+#org.hibernate.cfg.AvailableSettings В самом классе и в пакете все конфигурационные настройки Hibernate
+# Добавляются в spring.jpa.properties.*
+
+
+  #------WebMvcAutoConfiguration------------------------------------------------------
+  web:
+    resources:
+      add-mappings: false  # проброс NoHandlerFoundException (смотри ниже)
+#      static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
+#      cache:
+#        period:
+#        use-last-modified: true
+#        cachecontrol:
+#          cache-private: true
+#          cache-public: false
+#          max-age:
+#          must-revalidate: true
+#          no-cache: true
+#          no-store: true
+#          no-transform: true
+#          proxy-revalidate: true
+#          s-max-age:
+#          stale-if-error:
+#          stale-while-revalidate:
+#      chain:
+#        enabled: false
+#        cache: true
+#        compressed: true
+#        strategy:
+#          content:
+#            enabled: false
+#            paths: /**
+#          fixed:
+#            enabled: false
+#            paths: /**
+#            version:
+#    locale-resolver: ACCEPT_HEADER
+#    locale:
+
+  mvc:
+#    throw-exception-if-no-handler-found: true  #чтобы обрабатывать NoHandlerFoundException в нашем @ControllerAdvice
+#    dispatch-options-request: true
+#    dispatch-trace-request: true
+#    log-request-details: true
+#    publish-request-handled-events: true
+#    servlet:
+#      path: /
+#      load-on-startup: -1
+    async:
+      request-timeout: PT10000S
+#    pathmatch:
+#      matching-strategy: path-pattern-parser
+#    contentnegotiation:
+#      favor-parameter: true
+#      parameter-name: testParam
+#      media-types:
+#        *
+#    view:
+#      prefix:
+#      suffix:
+#    message-codes-resolver-format: PREFIX_ERROR_CODE
+#    static-path-pattern: /**
+#    webjars-path-pattern: /webjars/**
+#    format:
+#      date: dd/MM/yyyy
+#      time: HH:mm:ss
+#      date-time: yyyy-MM-dd HH:mm:ss
+#    log-resolved-exception: true
+#    problemdetails:
+#      enabled: true
+#--------------------------------------------------------------------------
+
+#-----HttpMessageConvertersAutoConfiguration-------------------------
+
+#    converters:
+#      preferred-json-mapper: jackson
+
+#--------------------------------------------------------------------------
+
+#-----MultipartAutoConfiguration----------------------------------------------
+
+#  servlet:
+#    multipart:
+#      enabled: true
+#      file-size-threshold: OB
+#      location:
+#      max-file-size: 1MB
+#      max-request-size: 10MB
+#      resolve-lazily: false
+#      strict-servlet-compliance: false
+
+
+#--------------------------------------------------------------------------
+
+
+#  security:
+#    user:
+#      password: Test12345
+#    filter:
+#      order: 10
+
+
+
+#logging.level.org.hibernate.stat=debug
+
+#---SslAutoConfiguration--------------------------
+#  ssl:
+#    bundle:
+#      jks.*:
+#      pem.*:
+#      watch:
+#        file:
+#          quiet-period:
+#------------------------------------------------
+
+logging:
+  level:
+#    org:
+#      springframework:
+#        web: INFO
+#        security: INFO
+#      hibernate:
+#        stat: debug
+#        #        SQL: debug
+#        persister:
+#          collection: debug
+#        type:
+#          descriptor:
+#            sql:
+#              BasicBinder: TRACE
+#    com:
+#      zaxxer:
+#        hikari: DEBUG
+    root: info
+
+#org:
+#  springframework:
+#    security:
+#      config:
+#        annotation:
+#          web:
+#            builders:
+#              WebSecurity:
+#                debugEnabled: false
+
+server:
+#------ServletWebServerFactoryAutoConfiguration-----------------------
+  address: 0.0.0.0 #https://stackoverflow.com/questions/23946369/how-to-configure-embedded-tomcat-integrated-with-spring-to-listen-requests-to-ip By default tomcat will bind to 0.0.0.0 and listen on all available addresses. There must be an environment restriction on the other addresses or ports if they are not working (like a firewall) . Simply add in application.properties file: server.address=0.0.0.0
+  port: 8082
+  server-header: Bid Service Server
+#  forward-headers-strategy: NATIVE|FRAMEWORK|NONE
+#  max-http-request-header-size: 8KB
+#  shutdown: graceful|immediate
+#  compression:
+#    enabled: true
+#    min-response-size: 50B
+#    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json,application/xml
+#    excluded-user-agents:
+#  http2:
+#    enabled: true
+#  ssl:
+#    enabled:
+#    ...
+  servlet:
+#    application-display-name: AuctionApplicationDisplayName
+#    context-path:
+#    context-parameters.testParam: testVal
+    register-default-servlet: false
+# ----HttpEncodingAutoConfiguration------------------------------
+#    encoding:
+#      enabled: true
+#      charset: UTF-8
+#      force: true
+#      force-request: true
+#      force-response: true
+#      mapping.*:
+# --------------------------------------------------------------
+    jsp:
+      registered: false
+#      class-name: org.apache.jasper.servlet.JspServlet
+#      init-parameters.testParam: testValue
+#    session:
+#      cookie:
+#        domain:
+#        path:
+#        name:
+#        comment:
+#        http-only:
+#        max-age:
+#        same-site:
+#        secure:
+#      timeout:
+#      persistent: true
+#      session-store-directory:
+#      tracking-modes: COOKIE | URL | SSL
+
+#---------------------------------------------------------------------------
+
+  #------ServletWebServerFactoryAutoConfiguration  + EmbeddedWebServerFactoryCustomizerAutoConfiguration----
+#  tomcat:
+#    accept-count: 100
+#    additional-tld-skip-patterns:
+#    background-processor-delay:
+#    basedir: /someDir
+#    connection-timeout: -1
+#    keep-alive-timeout: -1
+#    max-connections: 8192
+#    max-http-form-post-size: 2MB
+#    max-http-response-header-size: 8KB
+#    max-keep-alive-requests: 100
+#    max-swallow-size: 2MB
+#    mbeanregistry:
+#       enabled: false
+#    processor-cache: 200
+#    redirect-context-root: true
+#    relaxed-path-chars:
+#    relaxed-query-chars:
+#    uri-encoding: UTF-8
+#    use-relative-redirects: false
+#    remoteip:
+#       host-header: X-Forwarded-Host
+#       port-header: X-Forwarded-Port
+#       protocol-header: X-Forwarded-Proto
+#       protocol-header-https-value: https
+#       remote-ip-header: X-FORWARDED-FOR
+#       internal-proxies:
+#       trusted-proxies:
+#    resource:
+#      allow-caching: true
+#      cache-ttl:
+#    threads:
+#      max: 200
+#      min-spare: 10
+#    accesslog:
+#      enabled: true
+#      buffered: true
+#      encoding: UTF-8
+#      locale:
+#      directory: logs
+#      max-days: -1
+#      pattern: common
+#      prefix: access_log
+#      suffix: .log
+#      rename-on-rotate: false
+#      rotate: true
+#      file-date-format: yyyy-MM-dd
+#      request-attributes-enabled: false
+#      check-exists: false
+#      condition-if:
+#      condition-unless:
+#      ipv6-canonical: false
+#  ----------------------------------------------------------
+
+# --- org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration-----
+#  error:
+#    path: /error
+#    whitelabel:
+#      enabled: false
+#    include-binding-errors: always
+#    include-exception: true
+#    include-message: on-param
+#    include-stacktrace: on-param
+#  --------------------------------------------------
+
+#jwt:
+#  private.key: classpath:cert/private.pem
+#  public.key: classpath:cert/public.pem

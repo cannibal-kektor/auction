@@ -1,7 +1,5 @@
 package kektor.auction.bid.dto;
 
-import kektor.auction.bid.model.BidStatus;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -15,6 +13,9 @@ public record OrchestratedBidDto(
 
         Instant createdOn,
 
-        BigDecimal amount
+        BigDecimal amount,
+
+        Long lotVersion
+
 ) {
 }
