@@ -8,9 +8,10 @@ import java.util.Set;
 //@NonFinal
 //@Builder
 //@EqualsAndHashCode(cacheStrategy = LAZY)
-public record LotFetchDto(
+public record LotDto(
 
         Long id,
+
         Long version,
 
         String name,
@@ -28,6 +29,8 @@ public record LotFetchDto(
         Set<CategoryDto> categories,
 
         BigDecimal highestBid,
+
+        Long winningBidId,
 
         Long bidsCount
 

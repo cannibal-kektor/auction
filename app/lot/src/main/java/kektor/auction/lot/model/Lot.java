@@ -94,9 +94,27 @@ public class Lot {
 //    protected BigDecimal highestBid = BigDecimal.ZERO;
 //
 //    //    @Formula("select s.bid_count from ITEM_SUMMARY s where s.item_id=id")
-////    @ColumnDefault("0")
+
+    /// /    @ColumnDefault("0")
 //    @Column(updatable = false, nullable = false)
 //    protected Long bidsCount = 0L;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || this.getClass() != o.getClass()) {
+            return false;
+        }
+        Lot that = (Lot) o;
+        return getId().equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getId().hashCode();
+    }
 
 }
 

@@ -3,7 +3,7 @@ package kektor.auction.lot.mapper;
 
 import kektor.auction.lot.dto.CategoryDto;
 import kektor.auction.lot.dto.LotCreateDto;
-import kektor.auction.lot.dto.LotFetchDto;
+import kektor.auction.lot.dto.LotDto;
 import kektor.auction.lot.dto.LotUpdateDto;
 import kektor.auction.lot.model.Lot;
 import org.mapstruct.*;
@@ -21,8 +21,9 @@ public interface LotMapper {
     @Mapping(source = "lot", target = ".")
     @Mapping(source = "lot.lotStat.bidsCount", target = "bidsCount")
     @Mapping(source = "lot.lotStat.highestBid", target = "highestBid")
+    @Mapping(source = "lot.lotStat.winningBidId", target = "winningBidId")
     @Mapping(source = "categories", target = "categories")
-    LotFetchDto toDto(Lot lot, Set<CategoryDto> categories);
+    LotDto toDto(Lot lot, Set<CategoryDto> categories);
 
     //    @Mappings({
 //            @Mapping(target = "version", ignore = true),

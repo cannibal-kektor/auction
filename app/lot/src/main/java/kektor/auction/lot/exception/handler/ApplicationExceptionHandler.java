@@ -2,12 +2,12 @@ package kektor.auction.lot.exception.handler;
 
 import jakarta.validation.ConstraintViolationException;
 import kektor.auction.lot.exception.AuctionAlreadyStartedException;
-import kektor.auction.lot.exception.ResourceNotFoundException;
-import kektor.auction.lot.exception.StaleItemVersionException;
+import kektor.auction.lot.exception.LotNotFoundException;
+import kektor.auction.lot.exception.StaleLotVersionException;
+import kektor.auction.lot.model.Lot;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.*;
 import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
@@ -34,11 +34,11 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 
 
 
-    @ExceptionHandler(StaleItemVersionException.class)
+    @ExceptionHandler(StaleLotVersionException.class)
     public ErrorResponse handleStaleItemVersionException(
-            StaleItemVersionException ex) {
+            StaleLotVersionException ex) {
 
-        return ErrorResponse.builder(ex, HttpStatus.BAD_REQUEST, ex.getMessage())
+        return ErrorResponse.builder(ex, HttpStatus.CONFLICT, ex.getMessage())
                 .property("lotId", ex.getLotId())
                 .property("currentLotVersion", ex.getCurrentVersion())
                 .property("submittedVersion", ex.getSubmittedVersion())
@@ -56,19 +56,14 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
                 .build();
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    ErrorResponse handleResourceNotFoundException(ResourceNotFoundException ex) {
+    @ExceptionHandler(LotNotFoundException.class)
+    ErrorResponse handleLotNotFoundException(LotNotFoundException ex) {
         return ErrorResponse.builder(ex, HttpStatus.NOT_FOUND, ex.getMessage())
-                .property("resource", ex.getResourceClass().getSimpleName())
-                .property("resourceId", ex.getResourceId())
+                .property("resource", Lot.class.getSimpleName())
+                .property("lotId", ex.getLotId())
                 .build();
     }
 
-
-    @ExceptionHandler(OptimisticLockingFailureException.class)
-    ErrorResponse handleOptimisticLockException(OptimisticLockingFailureException ex) {
-        return ErrorResponse.create(ex, HttpStatus.CONFLICT, CONCURRENT_CONFLICT);
-    }
 
 
     @Override

@@ -5,7 +5,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import kektor.auction.lot.model.Lot;
 import kektor.auction.lot.repository.CustomOperation;
-import kektor.auction.lot.exception.ResourceNotFoundException;
+import kektor.auction.lot.exception.LotNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
@@ -24,7 +24,7 @@ public class CustomOperationImpl implements CustomOperation {
     public Lot findExceptionally(Long id) {
         Lot entity = entityManager.find(Lot.class, id);
         if (entity == null) {
-            throw new ResourceNotFoundException(Lot.class, id);
+            throw new LotNotFoundException(id);
         }
         return entity;
     }

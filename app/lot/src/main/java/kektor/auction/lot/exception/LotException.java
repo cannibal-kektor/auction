@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 public abstract sealed class LotException extends RuntimeException
-        permits StaleItemVersionException {
+        permits StaleLotVersionException {
 
     Long lotId;
 

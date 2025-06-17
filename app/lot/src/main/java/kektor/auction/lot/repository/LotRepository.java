@@ -19,11 +19,15 @@ public interface LotRepository extends CustomOperation, JpaRepository<Lot, Long>
 
 //    Optional<Lot> findById(Long id);
 
+    @Query(value = "SELECT lot_id FROM lot_categories WHERE categories_id=:categoryId", nativeQuery = true)
+    List<Long> findLotsIdsByCategory(@Param("categoryIds") Long categoryId);
+
+
     @Meta(comment = "Find lot using optimistic lock")
     @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
     Optional<Lot> findItemVersionForceIncrementById(Long id);
 
-//    @Query("SELECT DISTINCT c FROM Lot l JOIN l.categoriesId c")
+    //    @Query("SELECT DISTINCT c FROM Lot l JOIN l.categoriesId c")
     @Query(value = "SELECT DISTINCT categories_id FROM lot_categories", nativeQuery = true)
     Set<Long> findDistinctCategoryIds();
 
@@ -31,6 +35,10 @@ public interface LotRepository extends CustomOperation, JpaRepository<Lot, Long>
     @Modifying
     @Query(value = "DELETE FROM lot_categories WHERE categories_id IN :categoryIds", nativeQuery = true)
     void deleteStaleCategoryIds(@Param("categoryIds") List<Long> categoryIds);
+
+
+    @Query(value = "select version from Lot where id=:id")
+    Long fetchLotVersion(@Param("id") Long lotId);
 
 //    @Query("select i.id from Item i join i.categories c where c.id in :categoryIds group by i.id having count(i.id) = :#{#categoryIds.size()} ")
 //    List<Long> findItemsIdsWithSelectedCategoriesBy(@Param("categoryIds") Collection<Long> categoryIds,

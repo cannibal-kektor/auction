@@ -43,15 +43,17 @@ public class CategoryCacheService {
     @Cacheable
     public CategoryDto getCategoryById(Long id) {
         return categoryClient.getCategoryById(id);
-    }
-
-    @CacheEvict
-    public void evictCategoryById(Long id) {
+        //TODO catchException
     }
 
     @Cacheable(key = "'all'")
     public List<CategoryDto> getAllCategories() {
         return categoryClient.getAllCategories();
+        //TODO catchException
+    }
+
+    @CacheEvict
+    public void evictCategoryById(Long id) {
     }
 
     public Set<CategoryDto> getCategories(Set<Long> ids) {

@@ -1,86 +1,116 @@
 package kektor.auction.lot.service;
 
-import kektor.auction.lot.dto.LotCreateDto;
-import kektor.auction.lot.dto.LotFetchDto;
-import kektor.auction.lot.dto.LotUpdateDto;
+import kektor.auction.lot.dto.*;
+import kektor.auction.lot.dto.msg.LotBidInfoUpdateMessage;
+import kektor.auction.lot.dto.msg.LotCategoriesUpdateMessage;
+import kektor.auction.lot.dto.msg.CategoryEventMessage;
+import kektor.auction.lot.dto.msg.LotInfoUpdateMessage;
 import kektor.auction.lot.mapper.LotMapper;
 import kektor.auction.lot.model.Lot;
+import kektor.auction.lot.model.LotStat;
 import kektor.auction.lot.repository.LotRepository;
 import kektor.auction.lot.exception.AuctionAlreadyStartedException;
-import kektor.auction.lot.exception.StaleItemVersionException;
-import kektor.auction.lot.stream.LotChangedEvent;
-import kektor.auction.lot.stream.StreamResponseHelper;
+import kektor.auction.lot.exception.StaleLotVersionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, timeout = 10000000)
 @RequiredArgsConstructor
 public class LotService {
 
     final LotRepository lotRepository;
-    final StreamResponseHelper streamResponseHelper;
     final ApplicationEventPublisher eventPublisher;
     final LotMapper mapper;
     final CategoryCacheService categoryService;
 
 
-    public LotFetchDto get(Long id) {
+    public LotDto get(Long id) {
         var lot = lotRepository.findExceptionally(id);
         var categories = categoryService.getCategories(lot.getCategoriesId());
         return mapper.toDto(lot, categories);
     }
 
+    public Long getCurrentVersion(Long id) {
+        return lotRepository.findExceptionally(id).getVersion();
+    }
+
     @Transactional
-    public LotFetchDto create(LotCreateDto createDTO) {
+    public LotDto create(LotCreateDto createDTO) {
         Lot lot = mapper.toModel(createDTO);
         lot = lotRepository.saveNew(lot);
         var categories = categoryService.getCategories(lot.getCategoriesId());
         //Делает отдельный инсерт на каждую категорию(смотри апдейт)
         return mapper.toDto(lot, categories);
     }
-
     //TODO AOP Check exceptions in @Transactional?
-    @Transactional
-    public LotFetchDto update(LotUpdateDto dto) {
-        Long lotId = dto.id();
-        Long updV = dto.version();
-        Lot lot = lotRepository.findExceptionally(lotId);
-        Long currentV = lot.getVersion();
-        if (!currentV.equals(updV)) {
-            throw new StaleItemVersionException(lot.getId(), currentV, updV);
-        }
 
-        if (lot.getAuctionStart().isBefore(Instant.now())) {
-            throw new AuctionAlreadyStartedException(lotId, lot.getAuctionStart());
-        }
+    @Transactional
+    public LotDto update(LotUpdateDto dto) {
+        Lot lot = lotRepository.findExceptionally(dto.id());
+        validateLotUpdate(lot, dto);
         mapper.update(dto, lot);
-        //Делает отдельный инсерт на каждую категорию в новой коллекции на апдейт(Походу в промежуточных таблицах ManyToMany Hibernate не делает(не может?) одну батч вставку в category_item)
-        //batch_size не помог
-        //https://stackoverflow.com/questions/65107454/hibernate-many-to-many-collection-insertion-optimization
-        //
-        lotRepository.flush();
-        //MappingJacksonValue set serialization view
+        try {
+            lotRepository.flush();
+        } catch (OptimisticLockingFailureException e) {
+            Long currentV = lotRepository.fetchLotVersion(dto.id());
+            throw new StaleLotVersionException(lot.getId(), currentV, lot.getVersion());
+        }
         var categories = categoryService.getCategories(lot.getCategoriesId());
-        LotFetchDto lotDto = mapper.toDto(lot, categories);
-        eventPublisher.publishEvent(new LotChangedEvent.LotUpdated(lotDto));
+        LotDto lotDto = mapper.toDto(lot, categories);
+        eventPublisher.publishEvent(new LotInfoUpdateMessage(lotDto));
         return lotDto;
     }
 
-    @Async
-    public void subscribeSseEmitter(Long lotId, Long lotVersion, SseEmitter sseEmitter) {
-        Lot lot = lotRepository.findExceptionally(lotId);
-        if (!lotVersion.equals(lot.getVersion())) {
-            sseEmitter.completeWithError(new StaleItemVersionException(lotId, lot.getVersion(), lotVersion));
-            return;
+    @Transactional
+    public void updateHighestBid(Long id, Long version, BigDecimal highestBid,
+                                 Long winningBidId, boolean isRollback) {
+        Lot lot = lotRepository.findExceptionally(id);
+        Long currentV = lot.getVersion();
+        if (!currentV.equals(version)) {
+            throw new StaleLotVersionException(lot.getId(), currentV, version);
         }
-        streamResponseHelper.registerSseEmitter(lotId, sseEmitter);
+        LotStat lotStat = lot.getLotStat();
+        lotStat.setHighestBid(highestBid);
+        lotStat.setWinningBidId(winningBidId);
+        Long currentBidsCount = lotStat.getBidsCount();
+        lotStat.setBidsCount(isRollback ? currentBidsCount - 1 : currentBidsCount + 1);
+
+        try {
+            lotRepository.flush();
+        } catch (OptimisticLockingFailureException e) {
+            currentV = lotRepository.fetchLotVersion(id);
+            throw new StaleLotVersionException(lot.getId(), currentV, lot.getVersion());
+        }
+
+        eventPublisher.publishEvent(new LotBidInfoUpdateMessage(id, currentV,
+                highestBid, winningBidId, isRollback));
     }
 
+
+    public void validateLotUpdate(Lot lot, LotUpdateDto dto) {
+        Long currentV = lot.getVersion();
+        Long updV = dto.version();
+        Long lotId = dto.id();
+        Instant auctionStart = lot.getAuctionStart();
+        if (!currentV.equals(updV)) {
+            throw new StaleLotVersionException(lotId, currentV, updV);
+        }
+        if (auctionStart.isBefore(Instant.now())) {
+            throw new AuctionAlreadyStartedException(lotId, auctionStart);
+        }
+    }
+
+    public void notifyLotUpdateSubscribers(Long categoryId, CategoryEventMessage message) {
+        lotRepository.findLotsIdsByCategory(categoryId)
+                .stream()
+                .map(lotId -> new LotCategoriesUpdateMessage(message, lotId))
+                .forEach(eventPublisher::publishEvent);
+    }
 }
