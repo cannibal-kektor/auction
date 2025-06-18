@@ -17,9 +17,7 @@ public class BrokerConf {
         return TopicBuilder.name(categoryEventTopic)
                 .partitions(1)
                 .replicas(1)
-//                .compact()
                 .build();
     }
-
-
+    
 }

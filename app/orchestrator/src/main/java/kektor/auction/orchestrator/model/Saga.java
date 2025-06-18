@@ -4,15 +4,15 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
-import lombok.*;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
 
 @Entity
-@Table(name = "SAGA")
 @Data
+@Table(name = "SAGA")
 public class Saga {
 
     public static final String ID_GENERATOR = "ID_GENERATOR";
@@ -34,40 +34,37 @@ public class Saga {
 
     @NotNull
     @Positive
+    @Column(updatable = false)
     Long lotId;
 
     @NotNull
     @PositiveOrZero
-    Long itemVersion;
-
+    @Column(updatable = false)
+    Long lotVersion;
 
     @NotNull
+    @Column(updatable = false)
     Instant createdOn;
 
     @NotNull
     @Positive
+    @Column(updatable = false)
     Long bidderId;
 
     @NotNull
-    boolean bidStarted = false;
-
-    @NotNull
-    boolean paymentStarted = false;
-
-    @NotNull
-    boolean lotChangeStarted = false;
-
-    @NotNull
     @Positive
+    @Column(updatable = false)
     BigDecimal newBidAmount;
 
     @NotNull
     @Positive
-    BigDecimal compensateHighestBid;
+    @Column(updatable = false)
+    BigDecimal compensateBidAmount;
 
     @NotNull
-    Long compensateBidsCount = 0L;
-
+    @Positive
+    @Column(updatable = false)
+    Long compensateWinningBidId;
 
 
     @Override

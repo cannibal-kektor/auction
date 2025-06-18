@@ -4,10 +4,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Set;
 
-//@Value
-//@NonFinal
-//@Builder
-//@EqualsAndHashCode(cacheStrategy = LAZY)
 public record LotDto(
 
         Long id,

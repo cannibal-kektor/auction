@@ -19,11 +19,14 @@ public interface LotServiceClient {
     @GetExchange(value = "/{lotId}/version")
     Long fetchVersion(@PathVariable("lotId") Long lotId);
 
+
     @PostExchange(value = "/{lotId}/updateHighestBid", contentType = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     void updateBidInfo(@PathVariable("lotId") Long id,
                        @RequestParam("version") Long version,
                        @RequestParam("highestBid") BigDecimal highestBid,
-                       @RequestParam("bidsCount") Long bidsCount);
+                       @RequestParam("winningBidId") Long winningBidId,
+                       @RequestParam("isRollback") boolean isRollback);
+
 
 
 }

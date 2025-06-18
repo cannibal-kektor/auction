@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
-@HttpExchange(url = "/orchestrator", accept = MediaType.APPLICATION_JSON_VALUE)
+@HttpExchange(url = "/orchestrator")
 public interface SagaOrchestratorClient {
 
-    @PostExchange("/place-bid")
+    @PostExchange(value = "/place-bid", contentType = MediaType.APPLICATION_JSON_VALUE)
     Long placeBid(@RequestBody NewBidRequestDto newBidRequestDto);
 
 }

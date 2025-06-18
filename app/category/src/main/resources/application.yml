@@ -2,7 +2,8 @@ debug: true
 
 app:
   kafka:
-    category.event-topic: category.event.auction
+    category:
+      update-event-topic: category.event.auction
 
 spring:
   application:
@@ -199,7 +200,7 @@ spring:
   web:
     resources:
       add-mappings: false  # проброс NoHandlerFoundException чтобы обрабатывать его в нашем @ControllerAdvice
-#  mvc:
+  mvc:
 #    dispatch-options-request: true
 #    dispatch-trace-request: true
 #    log-request-details: true
@@ -207,8 +208,8 @@ spring:
 #    servlet:
 #      path: /
 #      load-on-startup: -1
-#    async:
-#      request-timeout: PT10S
+    async:
+      request-timeout: PT1000S
 #    pathmatch:
 #      matching-strategy: path-pattern-parser
 #    contentnegotiation:

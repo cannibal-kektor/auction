@@ -24,15 +24,8 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
-//@RestControllerAdvice(basePackages = "com.example.demo.book.controllers")
 @RestControllerAdvice
 public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
-
-    public static final String CONCURRENT_CONFLICT = "Someone has already updated the resource, try again";
-
-//    final BearerTokenAuthenticationEntryPoint authenticationEntryPoint;
-
-
 
     @ExceptionHandler(StaleLotVersionException.class)
     public ErrorResponse handleStaleItemVersionException(
@@ -44,7 +37,6 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
                 .property("submittedVersion", ex.getSubmittedVersion())
                 .build();
     }
-
 
     @ExceptionHandler(AuctionAlreadyStartedException.class)
     public ErrorResponse handleAuctionAlreadyStartedException(
@@ -99,33 +91,17 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
     }
 
 
-    @ExceptionHandler(DataAccessException.class)
-    public ErrorResponse handleInvalidDatabaseRequestException(
-            Exception ex) {
-        return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-//    @ExceptionHandler(AccessDeniedException.class)
-//    public ResponseEntity<ApiCallError<String>> handleAccessDeniedException(
-//            HttpServletRequest request, AccessDeniedException ex) {
-//        logger.error("handleAccessDeniedException {}\n", request.getRequestURI(), ex);
-//
-//        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-//                .body(new ApiCallError<>("Access denied!", List.of(ex.getMessage())));
-
-//    }
-
-//    @ExceptionHandler(BadCredentialsException.class)
-//    public void handleAccessDeniedException(
-//            HttpServletRequest request, HttpServletResponse response, BadCredentialsException ex) {
-//        authenticationEntryPoint.commence(request, response, ex);
-//    }
-
     @ExceptionHandler(ConstraintViolationException.class)
     public ErrorResponse handleInvalidBidException(
             Exception ex) {
         return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(DataAccessException.class)
+    public ErrorResponse handleInvalidDatabaseRequestException(
+            Exception ex) {
+        return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
 
 
     @ExceptionHandler(Exception.class)
@@ -134,52 +110,5 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
                 .orElse("Internal error"));
     }
 
-
-    //    @ExceptionHandler({ Exception.class })
-//    public ResponseEntity<Object> handleAll(
-//            Exception ex,
-//            WebRequest request) {
-//
-//
-//        return ResponseEntityBuilder.build(err);
-//    }
-
-
-//    private ResponseEntity<ErrorResponse> buildErrorResponse(
-//            Exception exception,
-//            HttpStatus httpStatus,
-//            WebRequest request
-//    ) {
-//        return buildErrorResponse(
-//                exception,
-//                exception.getMessage(),
-//                httpStatus,
-//                request);
-//    }
-//
-//    private ResponseEntity<ErrorResponse> buildErrorResponse(
-//            Exception exception,
-//            String message,
-//            HttpStatus httpStatus,
-//            WebRequest request
-//    ) {
-//        ErrorResponse errorResponse = new ErrorResponse(
-//                httpStatus.value(),
-//                exception.getMessage()
-//        );
-//
-//        if(printStackTrace && isTraceOn(request)){
-//            errorResponse.setStackTrace(ExceptionUtils.getStackTrace(exception));
-//        }
-//        return ResponseEntity.status(httpStatus).body(errorResponse);
-//    }
-//
-//    private boolean isTraceOn(WebRequest request) {
-//        String [] value = request.getParameterValues(TRACE);
-//        return Objects.nonNull(value)
-//                && value.length > 0
-//                && value[0].contentEquals("true");
-//    }
-//}
 
 }

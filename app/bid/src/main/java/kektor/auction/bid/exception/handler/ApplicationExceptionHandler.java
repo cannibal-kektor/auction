@@ -1,9 +1,9 @@
 package kektor.auction.bid.exception.handler;
 
 import jakarta.validation.ConstraintViolationException;
-import kektor.auction.bid.exception.BidConcurrencyException;
 import kektor.auction.bid.exception.BidNotFoundBySagaException;
 import kektor.auction.bid.exception.BidNotFoundException;
+import kektor.auction.bid.exception.StaleLotVersionException;
 import kektor.auction.bid.model.Bid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,19 +24,14 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
-//@RestControllerAdvice(basePackages = "com.example.demo.book.controllers")
 @RestControllerAdvice
 public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
-
-    public static final String CONCURRENT_CONFLICT = "Someone has already updated the resource, try again";
-
-//    final BearerTokenAuthenticationEntryPoint authenticationEntryPoint;
 
     @ExceptionHandler(BidNotFoundException.class)
     ErrorResponse handleResourceNotFoundException(BidNotFoundException ex) {
         return ErrorResponse.builder(ex, HttpStatus.NOT_FOUND, ex.getMessage())
                 .property("resource", Bid.class.getSimpleName())
-                .property("resourceId", ex.getBidId())
+                .property("bidId", ex.getBidId())
                 .build();
     }
 
@@ -49,28 +44,26 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
                 .build();
     }
 
-    @ExceptionHandler(BidConcurrencyException.class)
-    ErrorResponse handleBidConcurrencyException(BidConcurrencyException ex) {
+    @ExceptionHandler(StaleLotVersionException.class)
+    ErrorResponse handleStaleLotVersionException(StaleLotVersionException ex) {
         return ErrorResponse.builder(ex, HttpStatus.CONFLICT, ex.getMessage())
-                .property("resource", Bid.class.getSimpleName())
                 .property("lotId", ex.getLotId())
-                .property("lotVersion", ex.getLotVersion())
+                .property("currentLotVersion", ex.getCurrentVersion())
+                .property("submittedVersion", ex.getSubmittedVersion())
                 .property("sagaId", ex.getSagaId())
                 .build();
     }
 
 
-    @ExceptionHandler(DataAccessException.class)
-    ErrorResponse handleInvalidDatabaseRequestException(
-            Exception ex) {
-        return ErrorResponse.create(ex, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-
+    @ExceptionHandler(ConstraintViolationException.class)
+    ErrorResponse handleInvalidBidException(Exception ex) {
+        return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
-    @ExceptionHandler(ConstraintViolationException.class)
-    ErrorResponse handleInvalidBidException(
-            Exception ex) {
-        return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+    @ExceptionHandler(DataAccessException.class)
+    ErrorResponse handleInvalidDatabaseRequestException(Exception ex) {
+        return ErrorResponse.create(ex, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+
     }
 
     @Override

@@ -1,4 +1,4 @@
-package kektor.auction.orchestrator.model;
+package kektor.auction.bid.dto.msg;
 
 public enum SagaStatus {
     ACTIVE,

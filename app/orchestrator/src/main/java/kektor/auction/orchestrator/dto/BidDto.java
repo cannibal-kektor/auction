@@ -1,22 +1,23 @@
 package kektor.auction.orchestrator.dto;
 
-import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
-@Builder
 public record BidDto(
+
+        Long id,
 
         Long lotId,
 
         Long bidderId,
 
-        Long sagaId,
+        BigDecimal amount,
 
         Instant createdOn,
 
-        BigDecimal amount
-) {
-}
+        BidStatus status
 
+) {
+
+}

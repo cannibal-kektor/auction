@@ -3,7 +3,7 @@ package kektor.auction.bid.controllers;
 import jakarta.validation.constraints.Positive;
 import kektor.auction.bid.dto.BidDto;
 import kektor.auction.bid.dto.NewBidRequestDto;
-import kektor.auction.bid.dto.OrchestratedBidDto;
+import kektor.auction.bid.dto.SagaBidDto;
 import kektor.auction.bid.service.BidService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.springframework.web.service.annotation.GetExchange;
 
 import java.util.concurrent.Callable;
 
@@ -34,21 +33,18 @@ public class BidApi {
         return () -> bidService.getBidBySaga(sagaId);
     }
 
-
-    //    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/placeBid", consumes = MediaType.APPLICATION_JSON_VALUE)
     public DeferredResult<ResponseEntity<Void>> placeBid(@RequestBody
                                                          @Validated NewBidRequestDto newBid) {
-        DeferredResult<ResponseEntity<Void>> deferredResult = new DeferredResult<>();
+        var deferredResult = new DeferredResult<ResponseEntity<Void>>(30000L);
         bidService.placeBid(newBid, deferredResult);
         return deferredResult;
     }
 
-
     @PostMapping(value = "/create", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Callable<Long> createBid(@RequestBody
-                                    @Validated OrchestratedBidDto orchestratedBidDto) {
-        return () -> bidService.create(orchestratedBidDto);
+                                    @Validated SagaBidDto sagaBidDto) {
+        return () -> bidService.create(sagaBidDto);
     }
 
     @PostMapping(value = "/commit")

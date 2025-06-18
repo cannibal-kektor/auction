@@ -11,6 +11,6 @@ import java.lang.reflect.Method;
 public class ApplicationUncaughtExceptionHandler implements AsyncUncaughtExceptionHandler {
     @Override
     public void handleUncaughtException(Throwable ex, Method method, Object... params) {
-        log.warn(ex.getMessage() + " occurred invoking async method: " + method);
+        log.warn("[{}] occurred invoking async method: {}", ex.getMessage(), method);
     }
 }

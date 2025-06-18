@@ -29,27 +29,25 @@ public class FallbackCompensationEngine {
     final SagaRepository sagaRepository;
     final LogHelper logHelper;
 
-
     @RetryableTopic(attempts = "4",
-            backoff = @Backoff(delay = 4000, multiplier = 2, maxDelay = 8000),
+            backoff = @Backoff(delay = 2000, multiplier = 2, maxDelay = 4000),
             sameIntervalTopicReuseStrategy = SameIntervalTopicReuseStrategy.SINGLE_TOPIC)
-    @KafkaListener(topics = "${app.kafka.stalled-saga}", groupId = "${spring.application.name}",
+    @KafkaListener(topics = "${app.kafka.stalled-saga-topic}", groupId = "${spring.application.name}",
             clientIdPrefix = "${HOSTNAME}", concurrency = "1")
-    public void listenCategoryEvents(@Payload Saga stalledSaga,
-                                     @Header(name = DEFAULT_HEADER_ATTEMPTS, required = false) Integer attempt) {
+    public void listenStalledSagasAndRetryCompensation(@Payload Saga stalledSaga,
+                                                       @Header(name = DEFAULT_HEADER_ATTEMPTS, required = false) Integer attempt) {
         logHelper.logAttemptToResolveStalledSaga(stalledSaga, attempt);
         var steps = sagaManager.getSagaSteps(stalledSaga);
-        sagaManager.compensateStalledPhase(steps, stalledSaga);
+        sagaManager.tryRetryStalledCompensation(steps, stalledSaga);
     }
 
-
     @Scheduled(fixedRate = 10000)
-    public void abortStuckSagas() {
+    public void findAndAbortStuckSagas() {
         Instant pastLimit = Instant.now().minus(10, MINUTES);
         var stuckSagas = sagaRepository.findStalledByStatusAndCreatedOnIsBefore(ACTIVE, pastLimit);
         for (Saga saga : stuckSagas) {
             var steps = sagaManager.getSagaSteps(saga);
-            sagaManager.compensatePhase(steps, saga);
+            sagaManager.tryAbortedCompensation(steps, saga);
         }
     }
 

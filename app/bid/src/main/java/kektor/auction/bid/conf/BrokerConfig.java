@@ -40,26 +40,16 @@ import java.util.Map;
 import static java.util.Map.entry;
 
 @Configuration
-public class BrokerConf {
+public class BrokerConfig {
 
-    @Value("${app.kafka.category.event-topic}")
-    String categoryEventTopic;
-
-    @Bean
-    public NewTopic categoryEventTopic() {
-        return TopicBuilder.name(categoryEventTopic)
-                .partitions(1)
-                .replicas(1)
-//                .compact()
-                .build();
-    }
+    @Value("${app.kafka.saga-status-topic}")
+    String sagaStatusTopic;
 
     @Bean
-    public NewTopic categoryEventTopicDLT() {
-        return TopicBuilder.name(categoryEventTopic + "-dlt")
+    public NewTopic sagaStatusTopic() {
+        return TopicBuilder.name(sagaStatusTopic)
                 .partitions(1)
                 .replicas(1)
-//                .compact()
                 .build();
     }
 

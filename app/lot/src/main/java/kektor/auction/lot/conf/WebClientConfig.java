@@ -14,14 +14,11 @@ public class WebClientConfig {
     public CategoryServiceClient categoryServiceClient() {
         RestClient restClient = RestClient.builder()
                 .baseUrl("http://localhost:8080")
-//                .defaultStatusHandler( )
                 .build();
-
-        HttpServiceProxyFactory factory = HttpServiceProxyFactory
+        return HttpServiceProxyFactory
                 .builderFor(RestClientAdapter.create(restClient))
-                .build();
-
-        return factory.createClient(CategoryServiceClient.class);
+                .build()
+                .createClient(CategoryServiceClient.class);
     }
 
 

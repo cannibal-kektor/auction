@@ -19,13 +19,12 @@ import java.util.concurrent.Callable;
 @RestController
 @Validated
 @RequiredArgsConstructor
-@RequestMapping(path = "/api", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping("/api")
 public class LotApi {
 
     final LotService lotService;
 
-    //    @JsonView(ItemDto.View.WithCategories.class)
-    @GetMapping(value = "/{lotId}")
+    @GetMapping(value = "/{lotId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Callable<LotDto> get(@PathVariable("lotId") @Positive Long id) {
         return () -> lotService.get(id);
     }
@@ -35,16 +34,14 @@ public class LotApi {
         return () -> lotService.getCurrentVersion(id);
     }
 
-    //    @JsonView(ItemDto.View.WithCategories.class)
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Callable<LotDto> create(@RequestBody
-                                        @Validated LotCreateDto dto) {
+                                   @Validated LotCreateDto dto) {
         return () -> lotService.create(dto);
     }
 
-    //    @JsonView(ItemDto.View.WithCategories.class)
-    @PutMapping(path = "/{lotId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/update", consumes = MediaType.APPLICATION_JSON_VALUE,  produces = MediaType.APPLICATION_JSON_VALUE)
     public Callable<LotDto> update(@RequestBody @Validated LotUpdateDto dto) {
         return () -> lotService.update(dto);
     }
@@ -55,7 +52,7 @@ public class LotApi {
                                            @RequestParam("version") @Positive Long version,
                                            @RequestParam("highestBid") @Positive BigDecimal highestBid,
                                            @RequestParam("winningBidId") Long winningBidId,
-                                           @RequestParam("isRollback") boolean isRollback ) {
+                                           @RequestParam("isRollback") boolean isRollback) {
         return () -> {
             lotService.updateHighestBid(id, version, highestBid, winningBidId, isRollback);
             return null;

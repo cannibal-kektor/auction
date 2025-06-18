@@ -6,7 +6,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
 
-public record BidRequestDto(
+public record NewBidRequestDto(
 
         @NotNull
         @Positive
@@ -14,7 +14,7 @@ public record BidRequestDto(
 
         @NotNull
         @PositiveOrZero
-        Long itemVersion,
+        Long lotVersion,
 
         @NotNull
         @Positive

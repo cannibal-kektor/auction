@@ -18,7 +18,7 @@ import java.time.Instant;
 //                , @UniqueConstraint(name = "uk_lotId_lotVersion", columnNames = "lotId, lotVersion")})
 @Getter
 @Setter
-public class Bid implements Comparable<Bid> {
+public class Bid {
 
     public static final String ID_GENERATOR = "ID_GENERATOR";
     public static final String ID_GENERATOR_SEQUENCE_NAME = "ID_SEQUENCE_GENERATOR";
@@ -34,15 +34,18 @@ public class Bid implements Comparable<Bid> {
 
     @NotNull
     @Positive
-    Long sagaId;
-
-    @NotNull
-    @Positive
+    @Column(updatable = false)
     Long lotId;
 
     @NotNull
     @Positive
+    @Column(updatable = false)
     Long bidderId;
+
+    @NotNull
+    @Positive
+    @Column(updatable = false)
+    Long sagaId;
 
     @NotNull
     @Positive
@@ -50,18 +53,13 @@ public class Bid implements Comparable<Bid> {
     BigDecimal amount;
 
     @NotNull
-//    @CreationTimestamp
+    @Column(updatable = false)
     Instant createdOn;
 
     @NotNull
     @Column(length = 20)
     @Enumerated(value = EnumType.STRING)
     BidStatus status = BidStatus.PENDING;
-
-    @Override
-    public int compareTo(Bid that) {
-        return that.getAmount().compareTo(this.getAmount());
-    }
 
     @Override
     public boolean equals(Object o) {

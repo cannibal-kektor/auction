@@ -1,9 +1,9 @@
-package kektor.auction.bid.dto;
+package kektor.auction.orchestrator.dto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
-public record OrchestratedBidDto(
+public record BidCreateDto(
 
         Long lotId,
 
@@ -11,11 +11,12 @@ public record OrchestratedBidDto(
 
         Long sagaId,
 
-        Instant createdOn,
+        Long lotVersion,
 
         BigDecimal amount,
 
-        Long lotVersion
+        Instant createdOn
 
 ) {
 }
+

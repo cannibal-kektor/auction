@@ -2,8 +2,8 @@ package kektor.auction.orchestrator.exception.handler;
 
 import jakarta.validation.ConstraintViolationException;
 import kektor.auction.orchestrator.exception.AuctionAlreadyStartedException;
-import kektor.auction.orchestrator.exception.ResourceNotFoundException;
-import kektor.auction.orchestrator.exception.StaleItemVersionException;
+import kektor.auction.orchestrator.exception.ConcurrentSagaException;
+import kektor.auction.orchestrator.exception.StaleLotVersionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -34,14 +34,23 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 
 
 
-    @ExceptionHandler(StaleItemVersionException.class)
-    public ErrorResponse handleStaleItemVersionException(
-            StaleItemVersionException ex) {
+    @ExceptionHandler(ConcurrentSagaException.class)
+    public ErrorResponse handleConcurrentSagaException(
+            ConcurrentSagaException ex) {
+        return ErrorResponse.builder(ex, HttpStatus.CONFLICT, ex.getMessage())
+                .property("lotId", ex.getLotId())
+                .property("triedCreatedOn", ex.getTriedCreatedOn())
+                .build();
+    }
 
-        return ErrorResponse.builder(ex, HttpStatus.BAD_REQUEST, ex.getMessage())
+    @ExceptionHandler(StaleLotVersionException.class)
+    public ErrorResponse handleStaleItemVersionException(
+            StaleLotVersionException ex) {
+        return ErrorResponse.builder(ex, HttpStatus.CONFLICT, ex.getMessage())
                 .property("lotId", ex.getLotId())
                 .property("currentLotVersion", ex.getCurrentVersion())
                 .property("submittedVersion", ex.getSubmittedVersion())
+                .property("sagaId", ex.getSagaId())
                 .build();
     }
 
@@ -55,15 +64,6 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
                 .property("actionStart", ex.getAuctionStart())
                 .build();
     }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    ErrorResponse handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return ErrorResponse.builder(ex, HttpStatus.NOT_FOUND, ex.getMessage())
-                .property("resource", ex.getResourceClass().getSimpleName())
-                .property("resourceId", ex.getResourceId())
-                .build();
-    }
-
 
     @ExceptionHandler(OptimisticLockingFailureException.class)
     ErrorResponse handleOptimisticLockException(OptimisticLockingFailureException ex) {

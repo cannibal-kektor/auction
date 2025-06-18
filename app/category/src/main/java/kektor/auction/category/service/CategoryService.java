@@ -4,9 +4,8 @@ import kektor.auction.category.aspect.PublishEvent;
 import kektor.auction.category.dto.CategoryDto;
 import kektor.auction.category.dto.CategoryEventMessage;
 import kektor.auction.category.mapper.CategoryMapper;
-import kektor.auction.category.model.Category;
 import kektor.auction.category.repository.CategoryRepository;
-import kektor.auction.category.exception.ResourceNotFoundException;
+import kektor.auction.category.exception.CategoryNotFoundException;
 import kektor.auction.category.exception.RestrictParentDeletionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,6 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-//@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class CategoryService {
 
     final CategoryRepository categoryRepository;
@@ -27,7 +25,7 @@ public class CategoryService {
         var optionalCategory = categoryRepository.findById(categoryId);
         return optionalCategory
                 .map(mapper::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException(Category.class, categoryId));
+                .orElseThrow(() -> new CategoryNotFoundException(categoryId));
     }
 
     @PublishEvent(CategoryEventMessage.EVENT_TYPE.CREATED)
@@ -45,7 +43,7 @@ public class CategoryService {
                     mapper.update(updateDTO, category);
                     return mapper.toDto(category);
                 })
-                .orElseThrow(() -> new ResourceNotFoundException(Category.class, categoryId));
+                .orElseThrow(() -> new CategoryNotFoundException(categoryId));
     }
 
     @PublishEvent(CategoryEventMessage.EVENT_TYPE.DELETED)
@@ -54,7 +52,7 @@ public class CategoryService {
         int deletedCount = categoryRepository.deleteByIdIfNoChildren(id);
         if (deletedCount == 0) {
             if (!categoryRepository.existsById(id)) {
-                throw new ResourceNotFoundException(Category.class, id);
+                throw new CategoryNotFoundException(id);
             }
             throw new RestrictParentDeletionException(id);
         }

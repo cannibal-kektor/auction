@@ -1,11 +1,9 @@
 package kektor.auction.bid.conf;
 
-import kektor.auction.bid.exception.BidConcurrencyException;
 import kektor.auction.bid.service.client.LotServiceClient;
 import kektor.auction.bid.service.client.SagaOrchestratorClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
@@ -33,7 +31,6 @@ public class WebClientConfig {
                 .baseUrl("http://localhost:8081")
                 .requestFactory(timeLimitedRequestFactory())
                 .build();
-
         return createProxy(restClient, LotServiceClient.class);
     }
 
@@ -47,7 +44,7 @@ public class WebClientConfig {
 
     JdkClientHttpRequestFactory timeLimitedRequestFactory() {
         var requestFactory = new JdkClientHttpRequestFactory();
-        requestFactory.setReadTimeout(Duration.of(5, SECONDS));
+        requestFactory.setReadTimeout(Duration.of(10, SECONDS));
         return requestFactory;
     }
 

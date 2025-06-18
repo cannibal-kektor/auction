@@ -43,9 +43,21 @@ public class BrokerConf {
     @Value("${app.kafka.stalled-saga}")
     String stalledSagaCompensation;
 
+    @Value("${app.kafka.saga-status-topic}")
+    String sagaStatusTopic;
+
     @Bean
     public NewTopic stalledSagaCompensationTopic() {
         return TopicBuilder.name(stalledSagaCompensation)
+                .partitions(1)
+                .replicas(1)
+//                .compact()
+                .build();
+    }
+
+    @Bean
+    public NewTopic sagaStatusTopic() {
+        return TopicBuilder.name(sagaStatusTopic)
                 .partitions(1)
                 .replicas(1)
 //                .compact()
@@ -112,19 +124,19 @@ public class BrokerConf {
         return Map.ofEntries(
                 entry(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class),
                 entry(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, CustomDelegatingByTypeSerializer.class),
-                entry(ProducerConfig.PARTITIONER_CLASS_CONFIG, RoundRobinPartitioner.class.getName()),
+//                entry(ProducerConfig.PARTITIONER_CLASS_CONFIG, RoundRobinPartitioner.class.getName()),
                 entry(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true),
                 entry(ProducerConfig.RETRIES_CONFIG, Integer.MAX_VALUE),
                 entry(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 60000),
-                entry(JsonSerializer.TYPE_MAPPINGS, "sagaMessage:kektor.auction.orchestrator.model.Saga")
+                entry(JsonSerializer.TYPE_MAPPINGS, "sagaMessage:kektor.auction.orchestrator.model.Saga,sagaStatus:kektor.auction.orchestrator.dto.msg.SagaStatusMessage")
 //                entry(config.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 5);)
         );
     }
 
     Map<String, Object> customConsumerProperties() {
         return Map.ofEntries(
-                entry(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class),
                 entry(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class),
+                entry(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class),
                 entry(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, LongDeserializer.class),
                 entry(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName()),
                 entry(JsonDeserializer.TYPE_MAPPINGS, "sagaMessage:kektor.auction.orchestrator.model.Saga")

@@ -56,6 +56,7 @@ public class Lot {
     String description;
 
     @NotNull
+    @Column(updatable = false)
     Long sellerId;
 
     @NotNull
@@ -87,17 +88,6 @@ public class Lot {
 
     @Embedded
     LotStat lotStat = new LotStat();
-
-//    //    @Formula("select s.max_bid from ITEM_SUMMARY s where s.item_id=id")
-////    @ColumnDefault("0.00")
-//    @Column(updatable = false, nullable = false)
-//    protected BigDecimal highestBid = BigDecimal.ZERO;
-//
-//    //    @Formula("select s.bid_count from ITEM_SUMMARY s where s.item_id=id")
-
-    /// /    @ColumnDefault("0")
-//    @Column(updatable = false, nullable = false)
-//    protected Long bidsCount = 0L;
 
     @Override
     public boolean equals(Object o) {

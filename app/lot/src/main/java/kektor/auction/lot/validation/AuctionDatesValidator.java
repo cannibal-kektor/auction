@@ -4,7 +4,6 @@ package kektor.auction.lot.validation;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import kektor.auction.lot.dto.LotCreateDto;
-import kektor.auction.lot.dto.LotFetchDto;
 import kektor.auction.lot.dto.LotUpdateDto;
 import org.springframework.stereotype.Component;
 

@@ -2,7 +2,8 @@ debug: true
 
 app:
   kafka:
-    stalled-saga: stalled.saga
+    stalled-saga-topic: stalled.saga.auction
+    saga-status-topic: saga.status.auction
 
 spring:
   application:

@@ -21,6 +21,8 @@ public record LotDto(
 
         BigDecimal highestBid,
 
+        Long winningBidId,
+
         Long bidsCount
 
 ) {

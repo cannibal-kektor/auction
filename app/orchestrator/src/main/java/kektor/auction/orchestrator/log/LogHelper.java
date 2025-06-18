@@ -1,5 +1,6 @@
 package kektor.auction.orchestrator.log;
 
+import kektor.auction.orchestrator.dto.msg.SagaStatusMessage;
 import kektor.auction.orchestrator.model.Saga;
 import kektor.auction.orchestrator.service.SagaPhase;
 import kektor.auction.orchestrator.service.step.SagaStep;
@@ -18,13 +19,12 @@ public class LogHelper {
     public static final String BID_CREATE_COMMIT_EXCEPTION_LOG = "Bid creation Saga step: Commit phase exception: Message:[{}] Saga:[{}]";
     public static final String BID_CREATE_COMPENSATE_EXCEPTION_LOG = "Bid creation Saga step: Compensation phase exception: Message:[{}] Saga:[{}]";
 
-    public static final String LOT_UPDATE_EXECUTION_EXCEPTION_LOG = "Lot update Saga step: Execution phase exception. Message:[{}] Saga:[{}]";
-    public static final String LOT_UPDATE_COMPENSATE_EXCEPTION_LOG = "Lot update Saga step: Compensation phase exception. Message:[{}] Saga:[{}]";
-
-    public static final String ERROR_FORWARDING_STALLED_COMPENSATION = "Error while forwarding saga compensation to broker. Manual intervention is required. Message:[{}] Saga:[{}]";
     public static final String ATTEMPT_TO_RERUN_STALLED_COMPENSATION = "Starting attempt to resolve stalled saga. Rerunning compensate steps. Attempt:[{}] Saga:[{}]";
     public static final String FAILED_ATTEMPT_TO_RERUN_STALLED_COMPENSATION = "Failed attempt to resolve stalled saga. Message:[{}] Saga:[{}]";
     public static final String MANUAL_INTERVENTION_MAYBE_REQUIRED = "Manual intervention maybe required to resolve stalled saga. Message:[{}] Saga:[{}]";
+
+    public static final String ERROR_FORWARDING_STALLED_COMPENSATION = "Error while forwarding saga compensation to broker. Manual intervention is required. Message:[{}] Saga:[{}]";
+    public static final String ERROR_SENDING_SAGA_STATUS_UPDATE = "Error while sending saga status update to broker. Message:[{}] Saga Update:[{}]";
 
 
     public void logPhaseException(SagaPhase value, Saga saga, Throwable ex) {
@@ -55,20 +55,7 @@ public class LogHelper {
     }
 
 
-    public <T extends SagaStep> void logLotUpdateStepException(SagaPhase phase, Saga saga, Throwable ex) {
-        String msg = switch (phase){
-            case EXECUTE -> LOT_UPDATE_EXECUTION_EXCEPTION_LOG;
-            case COMPENSATE -> LOT_UPDATE_COMPENSATE_EXCEPTION_LOG;
-            default -> throw new IllegalStateException("Unexpected value: " + phase) ;
-        };
-        log.atError()
-                .setMessage(msg)
-                .addArgument(ex.getMessage())
-                .addArgument(saga)
-                .log();
-    }
-
-    public void logErrorForwardingStalledCompensation(Saga saga, Throwable ex) {
+    public void logErrorWhileRearrangingStalledCompensation(Saga saga, Throwable ex) {
         log.atError()
                 .setMessage(ERROR_FORWARDING_STALLED_COMPENSATION)
                 .addArgument(ex.getMessage())
@@ -97,6 +84,14 @@ public class LogHelper {
                 .setMessage(MANUAL_INTERVENTION_MAYBE_REQUIRED)
                 .addArgument(error)
                 .addArgument(saga)
+                .log();
+    }
+
+    public void logErrorWhileSendingSagaStatusUpdate(SagaStatusMessage msg, Throwable ex) {
+        log.atError()
+                .setMessage(ERROR_SENDING_SAGA_STATUS_UPDATE)
+                .addArgument(ex.getMessage())
+                .addArgument(msg)
                 .log();
     }
 }

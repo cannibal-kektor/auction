@@ -1,7 +1,7 @@
 package kektor.auction.orchestrator.service;
 
 import kektor.auction.orchestrator.dto.LotDto;
-import kektor.auction.orchestrator.dto.BidRequestDto;
+import kektor.auction.orchestrator.dto.NewBidRequestDto;
 import kektor.auction.orchestrator.exception.*;
 import kektor.auction.orchestrator.model.Saga;
 import kektor.auction.orchestrator.service.client.LotServiceClient;
@@ -21,30 +21,31 @@ public class SagaOrchestratorService {
     final SagaManager sagaManager;
 
     @Async
-    public void placeBid(BidRequestDto bidRequestDto, DeferredResult<Long> deferredResult) {
-        Long lotId = bidRequestDto.lotId();
+    public void placeBid(NewBidRequestDto newBidRequestDto, DeferredResult<Long> deferredResult) {
+        Long lotId = newBidRequestDto.lotId();
         LotDto lotDto = lotService.fetchLot(lotId);
-        validateNewBid(lotDto, bidRequestDto);
-        Saga saga = sagaManager.prepareSaga(bidRequestDto, lotDto);
-        deferredResult.setResult(saga.getSagaId());
+        Instant createdOn = Instant.now();
+        validateNewBid(lotDto, newBidRequestDto, createdOn);
+        Saga saga = sagaManager.prepareSaga(newBidRequestDto, lotDto, createdOn);
         Long recheckedVersion = lotService.fetchVersion(lotId);
-        if (!bidRequestDto.itemVersion().equals(recheckedVersion))
-            throw new ConcurrentSagaException();
+        if (!newBidRequestDto.lotVersion().equals(recheckedVersion))
+            throw new StaleLotVersionException(lotId, recheckedVersion, newBidRequestDto.lotVersion(), saga.getSagaId());
+        deferredResult.setResult(saga.getSagaId());
         sagaManager.executeSaga(saga);
     }
 
 
-    void validateNewBid(LotDto lot, BidRequestDto bid) {
+    void validateNewBid(LotDto lot, NewBidRequestDto bid, Instant createdOn) {
         long lotId = lot.id();
-        if (!lot.version().equals(bid.itemVersion())) {
-            throw new StaleItemVersionException(lotId, lot.version(), bid.itemVersion());
+        if (!lot.version().equals(bid.lotVersion())) {
+            throw new StaleLotVersionException(lotId, lot.version(), bid.lotVersion());
         }
-        Instant now = Instant.now();
-        if (now.isAfter(lot.auctionEnd())) {
-            throw new TooLateBidException(lotId, lot.auctionEnd(), now);
+
+        if (createdOn.isAfter(lot.auctionEnd())) {
+            throw new TooLateBidException(lotId, lot.auctionEnd(), createdOn);
         }
-        if (now.isBefore(lot.auctionStart())) {
-            throw new TooEarlyBidException(lotId, lot.auctionStart(), now);
+        if (createdOn.isBefore(lot.auctionStart())) {
+            throw new TooEarlyBidException(lotId, lot.auctionStart(), createdOn);
         }
 
         BigDecimal newBidAmount = bid.amount();

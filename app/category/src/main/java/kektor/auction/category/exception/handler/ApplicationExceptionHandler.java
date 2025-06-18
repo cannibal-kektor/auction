@@ -1,7 +1,7 @@
 package kektor.auction.category.exception.handler;
 
 import jakarta.validation.ConstraintViolationException;
-import kektor.auction.category.exception.ResourceNotFoundException;
+import kektor.auction.category.exception.CategoryNotFoundException;
 import kektor.auction.category.exception.RestrictParentDeletionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,18 +22,14 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
-//@RestControllerAdvice(basePackages = "com.example.demo.book.controllers")
 @RestControllerAdvice
 public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
 
-//    final BearerTokenAuthenticationEntryPoint authenticationEntryPoint;
-
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    ErrorResponse handleResourceNotFoundException(ResourceNotFoundException ex) {
+    @ExceptionHandler(CategoryNotFoundException.class)
+    ErrorResponse handleResourceNotFoundException(CategoryNotFoundException ex) {
         return ErrorResponse.builder(ex, HttpStatus.NOT_FOUND, ex.getMessage())
-                .property("resource", ex.getResourceClass().getSimpleName())
-                .property("resourceId", ex.getResourceId())
+                .property("resource", "Category")
+                .property("categoryId", ex.getCategoryId())
                 .build();
     }
 
@@ -85,28 +81,12 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
             Exception ex) {
         return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
-//    @ExceptionHandler(AccessDeniedException.class)
-//    public ResponseEntity<ApiCallError<String>> handleAccessDeniedException(
-//            HttpServletRequest request, AccessDeniedException ex) {
-//        logger.error("handleAccessDeniedException {}\n", request.getRequestURI(), ex);
-//
-//        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-//                .body(new ApiCallError<>("Access denied!", List.of(ex.getMessage())));
-
-//    }
-
-//    @ExceptionHandler(BadCredentialsException.class)
-//    public void handleAccessDeniedException(
-//            HttpServletRequest request, HttpServletResponse response, BadCredentialsException ex) {
-//        authenticationEntryPoint.commence(request, response, ex);
-//    }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ErrorResponse handleInvalidCategoryException(
             ConstraintViolationException ex) {
         return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
-
 
     @ExceptionHandler(Exception.class)
     ErrorResponse handleAll(Exception ex) {

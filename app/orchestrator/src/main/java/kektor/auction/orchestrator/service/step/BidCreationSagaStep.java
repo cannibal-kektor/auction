@@ -1,16 +1,23 @@
 package kektor.auction.orchestrator.service.step;
 
 
+import kektor.auction.orchestrator.dto.BidDto;
+import kektor.auction.orchestrator.dto.LotDto;
 import kektor.auction.orchestrator.log.LogHelper;
 import kektor.auction.orchestrator.service.SagaPhase;
 import kektor.auction.orchestrator.mapper.SagaMapper;
 import kektor.auction.orchestrator.model.Saga;
 import kektor.auction.orchestrator.service.client.BidServiceClient;
+import kektor.auction.orchestrator.service.client.LotServiceClient;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientResponseException;
+
+import java.util.Optional;
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
@@ -21,9 +28,11 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
 public class BidCreationSagaStep implements SagaStep {
 
     final BidServiceClient bidService;
+    final LotServiceClient lotService;
     final SagaMapper sagaMapper;
     final LogHelper logHelper;
-    private Saga saga;
+
+    Saga saga;
 
     @Override
     public SagaStep setSaga(Saga saga) {
@@ -44,7 +53,23 @@ public class BidCreationSagaStep implements SagaStep {
 
     @Override
     public void compensate() {
-        bidService.compensateBid(saga.getSagaId());
+        Long sagaId = saga.getSagaId();
+        Long lotId = saga.getLotId();
+        Optional<BidDto> bidOpt = bidService.fetchBid(sagaId);
+        if (bidOpt.isPresent()) {
+            var bid = bidOpt.get();
+            bidService.rejectBid(sagaId);
+            LotDto lot = lotService.fetchLot(lotId);
+            if (lot.winningBidId().equals(bid.id())) {
+                try {
+                    lotService.updateBidInfo(lotId, saga.getLotVersion() + 1,
+                            saga.getCompensateBidAmount(), saga.getCompensateWinningBidId(), true);
+                } catch (RestClientResponseException e) {
+                    if (e.getStatusCode() != HttpStatus.CONFLICT)
+                        throw e;
+                }
+            }
+        }
     }
 
     @SneakyThrows

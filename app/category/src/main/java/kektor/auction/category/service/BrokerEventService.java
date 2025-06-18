@@ -17,7 +17,7 @@ public class BrokerEventService {
 
     final KafkaTemplate<Long, CategoryEventMessage> kafkaTemplate;
 
-    @Value("${app.kafka.category.event-topic}")
+    @Value("${app.kafka.category.update-event-topic}")
     String categoryEventTopic;
 
     @Async

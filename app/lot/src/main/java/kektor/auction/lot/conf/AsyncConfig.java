@@ -36,52 +36,6 @@ public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
     public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
     }
 
-//    private final ThreadPoolTaskExecutor defaultSpringBootAsyncExecutor;
-//    public AsyncConfig(ThreadPoolTaskExecutor defaultSpringBootAsyncExecutor) {
-//        this.defaultSpringBootAsyncExecutor = defaultSpringBootAsyncExecutor;
-//    }
-//
-//    @Override
-//    public Executor getAsyncExecutor() {
-//        defaultSpringBootAsyncExecutor.setTaskDecorator(loggingMDCTaskDecorator());
-//        return new DelegatingSecurityContextAsyncTaskExecutor(defaultSpringBootAsyncExecutor);
-
-//    }
-
-
-//    @Bean
-//    public DelegatingSecurityContextAsyncTaskExecutor taskExecutor(ThreadPoolTaskExecutor delegate) {
-//        return new DelegatingSecurityContextAsyncTaskExecutor(delegate);
-//    }
-
-//    @Bean
-//    TaskDecorator composedTaskDecorator() {
-//        return runnable -> securityTaskDecorator()
-//                .andThen(loggingTaskDecorator())
-//                .apply(runnable);
-//    }
-//
-//    Function<Runnable, Runnable> loggingTaskDecorator() {
-//        return runnable -> {
-//            System.out.println("LOGGING SET------------------------");
-//            Map<String, String> contextMap = MDC.getCopyOfContextMap();
-//            return () -> {
-//                try {
-//                    MDC.setContextMap(contextMap);
-//                    runnable.run();
-//                } finally {
-//                    MDC.clear();
-//                }
-//            };
-//        };
-//    }
-//
-//    Function<Runnable, Runnable> securityTaskDecorator() {
-//        return delegate -> {
-//            System.out.println("SECURITY APPLIED");
-//            return new DelegatingSecurityContextRunnable(delegate);
-//        };
-//    }
 }
 
 
