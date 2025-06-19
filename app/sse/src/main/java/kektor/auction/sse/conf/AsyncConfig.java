@@ -1,10 +1,9 @@
-package kektor.auction.lot.conf;
+package kektor.auction.sse.conf;
 
 
-import kektor.auction.lot.exception.handler.ApplicationUncaughtExceptionHandler;
+import kektor.auction.sse.exception.handler.ApplicationUncaughtExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.task.ThreadPoolTaskSchedulerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
-public class BrokerConf {
+public class BrokerConfig {
 
     @Value("${app.kafka.category.event-topic}")
     String categoryEventTopic;

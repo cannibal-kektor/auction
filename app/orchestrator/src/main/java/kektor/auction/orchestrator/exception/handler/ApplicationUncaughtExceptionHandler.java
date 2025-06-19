@@ -10,13 +10,16 @@ import java.lang.reflect.Method;
 @Slf4j
 @Component
 public class ApplicationUncaughtExceptionHandler implements AsyncUncaughtExceptionHandler, ErrorHandler {
+
     @Override
     public void handleUncaughtException(Throwable ex, Method method, Object... params) {
-        log.warn("Exception while invoking async method. [" + ex.getMessage() + "] Method: [" + method + "]");
+        log.warn("Exception while invoking async method. Exception:[{}] Message:[{}] Method: [{}]",
+                ex.getClass().getSimpleName(), ex.getMessage(), method);
     }
 
     @Override
     public void handleError(Throwable ex) {
-        log.warn("Exception while invoking scheduled method. [" + ex.getMessage() + "]", ex);
+        log.warn("Exception while invoking scheduled method. Exception:[{}] Message:[{}]",
+                ex.getClass().getSimpleName(), ex.getMessage());
     }
 }

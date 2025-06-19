@@ -28,6 +28,7 @@
         <module>category</module>
         <module>query</module>
         <module>orchestrator</module>
+        <module>sse</module>
     </modules>
 
     <properties>
