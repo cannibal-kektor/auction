@@ -21,7 +21,7 @@ public class LogHelper {
 
     public static final String ATTEMPT_TO_RERUN_STALLED_COMPENSATION = "Starting attempt to resolve stalled saga. Rerunning compensate steps. Attempt:[{}] Saga:[{}]";
     public static final String FAILED_ATTEMPT_TO_RERUN_STALLED_COMPENSATION = "Failed attempt to resolve stalled saga. Message:[{}] Saga:[{}]";
-    public static final String MANUAL_INTERVENTION_MAYBE_REQUIRED = "Manual intervention maybe required to resolve stalled saga. Message:[{}] Saga:[{}]";
+    public static final String MANUAL_INTERVENTION_MAYBE_REQUIRED = "DLT record received [Saga]: Manual intervention maybe required to resolve stalled saga. Exception=[{}] Message:[{}] Saga:[{}]";
 
     public static final String ERROR_FORWARDING_STALLED_COMPENSATION = "Error while forwarding saga compensation to broker. Manual intervention is required. Message:[{}] Saga:[{}]";
     public static final String ERROR_SENDING_SAGA_STATUS_UPDATE = "Error while sending saga status update to broker. Message:[{}] Saga Update:[{}]";
@@ -79,10 +79,11 @@ public class LogHelper {
                 .log();
     }
 
-    public void logManualInterventionMaybeRequired(Saga saga, String error) {
+    public void logManualInterventionMaybeRequired(Saga saga, String exName, String exMessage) {
         log.atError()
                 .setMessage(MANUAL_INTERVENTION_MAYBE_REQUIRED)
-                .addArgument(error)
+                .addArgument(exName)
+                .addArgument(exMessage)
                 .addArgument(saga)
                 .log();
     }

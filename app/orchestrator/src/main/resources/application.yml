@@ -57,114 +57,41 @@ spring:
 
   # ---KafkaAutoConfiguration--------------------------------------
   kafka:
-    bootstrap-servers: localhost:9093
-    #    bootstrap-servers: kafka01:9092
-    client-id: ${HOSTNAME}
-    #    security:
-    #      protocol:
-    #    ssl:
-    #      bundle:
-    #    properties:
-    #      #       Тип, для которого определяем конкретные сериализаторы
-    #      spring.json.value.default.type: ru.home.kafka.dto.JsonMessage
-    #      spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
-    #      spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-
-    #    admin:
-    #      auto-create: true
-    #      client-id: ${HOSTNAME}
-    #      close-timeout:
-    #      fail-fast: false
-    #      modify-topic-configs: false
-    #      operation-timeout:
-    #      security:
-    #        protocol:
-    #      ssl:
-    #        bundle:
-    #        protocol:
-
+    bootstrap-servers: localhost:9092
     listener:
       ack-mode: record
       log-container-config: true
       missing-topics-fatal: true
-    #      concurrency: #in annotation
-    #      auto-startup: true
-    #      async-acks: false
-    #      type: single
-    #      ack-count:
-    #      ack-time:
-    #      auth-exception-retry-interval:
-    #      change-consumer-thread-name: false
-    #      client-id: ${HOSTNAME}
-    #      idle-between-polls: 0
-    #      idle-event-interval:
-    #      idle-partition-event-interval:
-    #      immediate-stop: false
-    #      monitor-interval:
-    #      observation-enabled: false
-    #      poll-timeout:
-    #      no-poll-threshold:
 
     consumer:
-#      group-id: ${spring.application.name}
-#      group-id: ${HOSTNAME}
-#      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
-#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       auto-offset-reset: latest
-#      bootstrap-servers:
-#      enable-auto-commit: false
-#      auto-commit-interval:
-#      client-id: ${HOSTNAME}
-#      fetch-max-wait:
-#      fetch-min-size:
-#      heartbeat-interval:
-#      isolation-level: read-uncommitted
-#      max-poll-interval:
-#      max-poll-records:
-#      security:
-#        protocol:
-#      ssl:
-#        bundle:
-#      properties:
-#        test:
-
-    #    template:
-    #      default-topic:
-    #      observation-enabled: false
-    #      transaction-id-prefix:
+      max-poll-records: 50
+      properties:
+        max.poll.interval.ms: 300000  # default
+        session.timeout.ms: 10000 # default
+        heartbeat.interval.ms: 3000 # default
+        spring.json.type.mapping: sagaMessage:kektor.auction.orchestrator.model.Saga
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.LongDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
 
     producer:
-      #      bootstrap-servers:
+      client-id: ${HOSTNAME}-saga-service-producer
       acks: all
-      batch-size: 0
-      #      buffer-memory:
-      #      client-id: ${HOSTNAME}
-      #      compression-type:
-#      key-serializer: org.apache.kafka.common.serialization.LongSerializer
-#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      retries: 3
-      #      transaction-id-prefix:
-      #      security:
-      #        protocol:
-      #      ssl:
-      #        bundle:
+      batch-size: 16KB
+      buffer-memory: 16MB
+      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      value-serializer: kektor.auction.orchestrator.conf.BrokerConfig.CustomDelegatingByTypeSerializer
+      retries: 2147483647
       properties:
+        enable.idempotence: true
+        delivery.timeout.ms: 30000
         request.timeout.ms: 10000
-
-
-  #    retry:
-  #      topic:
-  #        enabled: false
-  #        attempts: 3
-  #        backoff:
-  #          delay: 1s
-  #          max-delay: 0
-  #          multiplier: 0
-  #          random: false
-
-  #    streams:
-  #      application-id:
-
+        max.block.ms: 5000
+        spring.json.type.mapping: >-
+          sagaMessage:kektor.auction.orchestrator.model.Saga,
+          sagaStatus:kektor.auction.orchestrator.dto.msg.SagaStatusMessage
 
   # ---DataSourceAutoConfiguration--------------------------------------
   datasource:

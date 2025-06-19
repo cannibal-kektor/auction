@@ -7,20 +7,10 @@ app:
 
 spring:
   application:
-    name: Auction-Category
+    name: auction-category-service
   main.banner-mode: off
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration
-
-#  #MessageSourceAutoConfiguration------------
-#  messages:
-#    basename: localization/messages
-#    use-code-as-default-message: false
-#    fallback-to-system-locale: false
-#    encoding: UTF-8
-#    always-use-message-format: false
-#    cache-duration: -1
-#  #-------------------------------------------
 
   #--JacksonAutoConfiguration------------------------
   jackson:
@@ -40,116 +30,24 @@ spring:
         await-termination: true
         await-termination-period: PT30S  #60 sec example - P3DT5H40M30S = 3Days, 5Hours, 40 Minutes and 30 Seconds
 
-
   # ---KafkaAutoConfiguration--------------------------------------
   kafka:
-    bootstrap-servers: localhost:9092
-#    bootstrap-servers: kafka01:9092
-    client-id: ${HOSTNAME}
-#    security:
-#      protocol:
-#    ssl:
-#      bundle:
-#    properties:
-#      #       Тип, для которого определяем конкретные сериализаторы
-#      spring.json.value.default.type: ru.home.kafka.dto.JsonMessage
-#      spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
-#      spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-
-#    admin:
-#      auto-create: true
-#      client-id: ${HOSTNAME}
- #      close-timeout:
- #      fail-fast: false
- #      modify-topic-configs: false
- #      operation-timeout:
- #      security:
- #        protocol:
- #      ssl:
- #        bundle:
- #        protocol:
-
-#    listener:
-#      ack-mode: record
-#      log-container-config: true
-#      missing-topics-fatal: true
-#      concurrency: #in annotation
-#      auto-startup: true
-#      async-acks: false
-#      type: single
-#      ack-count:
-#      ack-time:
-#      auth-exception-retry-interval:
-#      change-consumer-thread-name: false
-#      client-id: ${HOSTNAME}
-#      idle-between-polls: 0
-#      idle-event-interval:
-#      idle-partition-event-interval:
-#      immediate-stop: false
-#      monitor-interval:
-#      observation-enabled: false
-#      poll-timeout:
-#      no-poll-threshold:
-
-#    consumer:
-#      group-id: ${spring.application.name}
-#      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
-#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-#      bootstrap-servers:
-#      enable-auto-commit: false
-#      auto-commit-interval:
-#      auto-offset-reset: latest
-#      client-id: ${HOSTNAME}
-#      fetch-max-wait:
-#      fetch-min-size:
-#      heartbeat-interval:
-#      isolation-level: read-uncommitted
-#      max-poll-interval:
-#      max-poll-records:
-#      security:
-#        protocol:
-#      ssl:
-#        bundle:
-#      properties:
-#        test:
-
-#    template:
-#      default-topic:
-#      observation-enabled: false
-#      transaction-id-prefix:
-
     producer:
-#      bootstrap-servers:
-      acks: 1
+      bootstrap-servers: localhost:9092
+      client-id: ${HOSTNAME}-producer
+      acks: all
       batch-size: 0
-#      buffer-memory:
-#      client-id: ${HOSTNAME}
-#      compression-type:
+      buffer-memory: 16MB
       key-serializer: org.apache.kafka.common.serialization.LongSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      retries: 3
-#      transaction-id-prefix:
-#      security:
-#        protocol:
-#      ssl:
-#        bundle:
+      retries: 2147483647
       properties:
-        "request.timeout.ms": 10000
-#        "spring.json.add.type.headers": false
-        "spring.json.type.mapping": categoryEvent:kektor.auction.category.dto.CategoryEventMessage
-
-#    retry:
-#      topic:
-#        enabled: false
-#        attempts: 3
-#        backoff:
-#          delay: 1s
-#          max-delay: 0
-#          multiplier: 0
-#          random: false
-
-#    streams:
-#      application-id:
+        partitioner.ignore.keys: false
+        enable.idempotence: true
+        delivery.timeout.ms: 30000
+        request.timeout.ms: 10000
+        max.block.ms: 5000
+        spring.json.type.mapping: categoryEvent:kektor.auction.category.dto.CategoryEventMessage
 
   # ---DataSourceAutoConfiguration--------------------------------------
   datasource:
@@ -187,14 +85,6 @@ spring:
         format_sql: true
         use_sql_comments: true
 #        dialect: org.hibernate.dialect.PostgreSQLDialect
-#        generate_statistics: true
-#        order_inserts: true
-#        batch_versioned_data: true
-#        jdbc:
-#          batch_size: 100
-#org.hibernate.cfg.AvailableSettings В самом классе и в пакете все конфигурационные настройки Hibernate
-# Добавляются в spring.jpa.properties.*
-
 
   #------WebMvcAutoConfiguration------------------------------------------------------
   web:

@@ -2,7 +2,7 @@ package kektor.auction.lot.service;
 
 
 import kektor.auction.lot.dto.msg.CategoryEventMessage;
-import kektor.auction.lot.dto.msg.UpdateMessage;
+import kektor.auction.lot.dto.msg.LotUpdateMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,9 +21,9 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class LotUpdateEventListener {
+public class BrokerService {
 
-    final KafkaTemplate<Long, UpdateMessage> kafkaTemplate;
+    final KafkaTemplate<Long, LotUpdateMessage> kafkaTemplate;
     final CategoryCacheService categoryCacheService;
     final LotService lotService;
 
@@ -33,9 +33,9 @@ public class LotUpdateEventListener {
 
     @Async
     @TransactionalEventListener(
-            classes = UpdateMessage.class,
+            classes = LotUpdateMessage.class,
             phase = TransactionPhase.AFTER_COMMIT)
-    public void lotChanged(UpdateMessage eventMsg) {
+    public void lotChanged(LotUpdateMessage eventMsg) {
         kafkaTemplate.send(lotUpdateEventTopic, eventMsg.lotId(), eventMsg)
                 .exceptionally(ex -> {
                     log.error("Error while sending lot update event", ex);
@@ -44,7 +44,7 @@ public class LotUpdateEventListener {
     }
 
     @KafkaListener(topics = "${app.kafka.category.update-event-topic}", groupId = "${HOSTNAME}",
-            clientIdPrefix = "${HOSTNAME}", concurrency = "1")
+            clientIdPrefix = "${HOSTNAME}-category-events-consumer", concurrency = "2")
     public void listenCategoryEvents(@Payload CategoryEventMessage message,
                                      @Header(KafkaHeaders.RECEIVED_KEY) long categoryId) {
         switch (message.eventType()) {

@@ -29,11 +29,10 @@ public class FallbackCompensationEngine {
     final SagaRepository sagaRepository;
     final LogHelper logHelper;
 
-    @RetryableTopic(attempts = "4",
-            backoff = @Backoff(delay = 2000, multiplier = 2, maxDelay = 4000),
-            sameIntervalTopicReuseStrategy = SameIntervalTopicReuseStrategy.SINGLE_TOPIC)
+    @RetryableTopic(attempts = "4", concurrency = "1",
+            backoff = @Backoff(delay = 1000, multiplier = 2, maxDelay = 4000))
     @KafkaListener(topics = "${app.kafka.stalled-saga-topic}", groupId = "${spring.application.name}",
-            clientIdPrefix = "${HOSTNAME}", concurrency = "1")
+            clientIdPrefix = "${HOSTNAME}-stalled-saga-consumer", concurrency = "1")
     public void listenStalledSagasAndRetryCompensation(@Payload Saga stalledSaga,
                                                        @Header(name = DEFAULT_HEADER_ATTEMPTS, required = false) Integer attempt) {
         logHelper.logAttemptToResolveStalledSaga(stalledSaga, attempt);
@@ -52,8 +51,10 @@ public class FallbackCompensationEngine {
     }
 
     @DltHandler
-    public void processDlt(Saga saga, @Header(KafkaHeaders.EXCEPTION_MESSAGE) String error) {
-        logHelper.logManualInterventionMaybeRequired(saga, error);
+    public void processDlt(@Payload(required = false) Saga saga,
+                           @Header(KafkaHeaders.EXCEPTION_FQCN) String exName,
+                           @Header(KafkaHeaders.EXCEPTION_MESSAGE) String exMessage) {
+        logHelper.logManualInterventionMaybeRequired(saga, exName, exMessage);
     }
 
 

@@ -1,4 +1,4 @@
-package kektor.auction.bid.conf;
+package kektor.auction.orchestrator.conf;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -20,8 +20,19 @@ import java.util.LinkedHashMap;
 @Configuration
 public class BrokerConfig {
 
+    @Value("${app.kafka.stalled-saga}")
+    String stalledSagaCompensation;
+
     @Value("${app.kafka.saga-status-topic}")
     String sagaStatusTopic;
+
+    @Bean
+    public NewTopic stalledSagaCompensationTopic() {
+        return TopicBuilder.name(stalledSagaCompensation)
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
 
     @Bean
     public NewTopic sagaStatusTopic() {

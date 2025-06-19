@@ -1,5 +1,5 @@
 package kektor.auction.lot.dto.msg;
 
-public interface UpdateMessage {
+public interface LotUpdateMessage {
     Long lotId();
 }
