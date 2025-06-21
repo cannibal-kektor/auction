@@ -1,5 +1,6 @@
 package kektor.auction.lot.service;
 
+import jakarta.persistence.OptimisticLockException;
 import kektor.auction.lot.dto.*;
 import kektor.auction.lot.dto.msg.LotBidInfoUpdateMessage;
 import kektor.auction.lot.dto.msg.LotCategoriesUpdateMessage;
@@ -13,7 +14,6 @@ import kektor.auction.lot.exception.AuctionAlreadyStartedException;
 import kektor.auction.lot.exception.StaleLotVersionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +58,7 @@ public class LotService {
         mapper.update(dto, lot);
         try {
             lotRepository.flush();
-        } catch (OptimisticLockingFailureException e) {
+        } catch (OptimisticLockException e) {
             Long currentV = lotRepository.fetchLotVersion(dto.id());
             throw new StaleLotVersionException(lot.getId(), currentV, lot.getVersion());
         }
@@ -84,7 +84,7 @@ public class LotService {
 
         try {
             lotRepository.flush();
-        } catch (OptimisticLockingFailureException e) {
+        } catch (OptimisticLockException e) {
             currentV = lotRepository.fetchLotVersion(id);
             throw new StaleLotVersionException(lot.getId(), currentV, lot.getVersion());
         }

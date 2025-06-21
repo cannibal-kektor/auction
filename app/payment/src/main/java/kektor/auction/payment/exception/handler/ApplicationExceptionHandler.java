@@ -1,14 +1,13 @@
 package kektor.auction.payment.exception.handler;
 
+import jakarta.persistence.OptimisticLockException;
 import jakarta.validation.ConstraintViolationException;
-import kektor.auction.payment.exception.PaymentAccountNotFoundByIdException;
-import kektor.auction.payment.exception.PaymentAccountNotFoundByUserIdException;
-import kektor.auction.payment.exception.StalePaymentAccountVersionException;
+import kektor.auction.payment.exception.*;
+import kektor.auction.payment.model.CreditOperation;
 import kektor.auction.payment.model.PaymentAccount;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.*;
 import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
 public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(PaymentAccountNotFoundByIdException.class)
-    ErrorResponse handleResourceNotFoundException(PaymentAccountNotFoundByIdException ex) {
+    ErrorResponse handlePaymentAccountNotFoundByIdException(PaymentAccountNotFoundByIdException ex) {
         return ErrorResponse.builder(ex, HttpStatus.NOT_FOUND, ex.getMessage())
                 .property("resource", PaymentAccount.class.getSimpleName())
                 .property("accountId", ex.getAccountId())
@@ -38,25 +37,33 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 
 
     @ExceptionHandler(PaymentAccountNotFoundByUserIdException.class)
-    ErrorResponse handleBidNotFoundBySagaException(PaymentAccountNotFoundByUserIdException ex) {
+    ErrorResponse handlePaymentAccountNotFoundByUserIdException(PaymentAccountNotFoundByUserIdException ex) {
         return ErrorResponse.builder(ex, HttpStatus.NOT_FOUND, ex.getMessage())
                 .property("resource", PaymentAccount.class.getSimpleName())
                 .property("userId", ex.getUserId())
                 .build();
     }
 
-    @ExceptionHandler(StalePaymentAccountVersionException.class)
-    ErrorResponse handleStaleLotVersionException(StalePaymentAccountVersionException ex) {
-        return ErrorResponse.builder(ex, HttpStatus.CONFLICT, ex.getMessage())
-                .property("accountId", ex.getPaymentAccountId())
-                .property("currentAccountVersion", ex.getCurrentVersion())
-                .property("submittedVersion", ex.getSubmittedVersion())
+    @ExceptionHandler(OperationNotFoundBySagaIdException.class)
+    ErrorResponse handleOperationNotFoundBySagaIdException(OperationNotFoundBySagaIdException ex) {
+        return ErrorResponse.builder(ex, HttpStatus.NOT_FOUND, ex.getMessage())
+                .property("resource", CreditOperation.class.getSimpleName())
                 .property("sagaId", ex.getSagaId())
                 .build();
     }
 
-    @ExceptionHandler(OptimisticLockingFailureException.class)
-    ErrorResponse handleOptimisticLockException(OptimisticLockingFailureException ex) {
+    @ExceptionHandler(NotEnoughAccountFundException.class)
+    ErrorResponse handleNotEnoughAccountFundException(NotEnoughAccountFundException ex) {
+        return ErrorResponse.builder(ex, HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage())
+                .property("accountId", ex.getAccountId())
+                .property("currentAmount", ex.getCurrentAmount())
+                .property("requestedAmount", ex.getRequestedAmount())
+                .build();
+    }
+
+    @ExceptionHandler(OptimisticLockException.class)
+    ErrorResponse handleOptimisticLockException(OptimisticLockException ex) {
+        //TODO ex.getEntity() populate errorresponse
         return ErrorResponse.create(ex, HttpStatus.CONFLICT, ex.getMessage());
     }
 

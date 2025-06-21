@@ -2,6 +2,7 @@ package kektor.auction.orchestrator.conf;
 
 import kektor.auction.orchestrator.service.client.BidServiceClient;
 import kektor.auction.orchestrator.service.client.LotServiceClient;
+import kektor.auction.orchestrator.service.client.PaymentServiceClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -36,6 +37,15 @@ public class WebClientConfig {
         return createProxy(restClient, LotServiceClient.class);
     }
 
+    @Bean
+    public PaymentServiceClient paymentServiceClient() {
+        RestClient restClient = RestClient.builder()
+                .baseUrl("http://localhost:8085")
+                .requestFactory(timeLimitedRequestFactory())
+                .build();
+
+        return createProxy(restClient, PaymentServiceClient.class);
+    }
 
     private <T> T createProxy(RestClient restClient, Class<T> clazz) {
         return HttpServiceProxyFactory

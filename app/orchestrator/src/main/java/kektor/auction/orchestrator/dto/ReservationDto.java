@@ -1,4 +1,4 @@
-package kektor.auction.payment.dto;
+package kektor.auction.orchestrator.dto;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;

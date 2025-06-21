@@ -1,6 +1,7 @@
-package kektor.auction.lot.controllers;
+package kektor.auction.lot.controller;
 
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import kektor.auction.lot.dto.LotCreateDto;
 import kektor.auction.lot.dto.LotDto;
@@ -19,30 +20,31 @@ import java.util.concurrent.Callable;
 @RestController
 @Validated
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping(value = "/api"
+        , consumes = MediaType.APPLICATION_JSON_VALUE
+        , produces = MediaType.APPLICATION_JSON_VALUE)
 public class LotApi {
 
     final LotService lotService;
 
-    @GetMapping(value = "/{lotId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/{lotId}")
     public Callable<LotDto> get(@PathVariable("lotId") @Positive Long id) {
         return () -> lotService.get(id);
     }
 
-    @GetMapping(value = "/{lotId}/version")
+    @GetMapping("/{lotId}/version")
     public Callable<Long> fetchCurrentVersion(@PathVariable("lotId") @Positive Long id) {
         return () -> lotService.getCurrentVersion(id);
     }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Callable<LotDto> create(@RequestBody
-                                   @Validated LotCreateDto dto) {
+    @PostMapping
+    public Callable<LotDto> create(@RequestBody @Valid LotCreateDto dto) {
         return () -> lotService.create(dto);
     }
 
-    @PutMapping(path = "/update", consumes = MediaType.APPLICATION_JSON_VALUE,  produces = MediaType.APPLICATION_JSON_VALUE)
-    public Callable<LotDto> update(@RequestBody @Validated LotUpdateDto dto) {
+    @PutMapping("/update")
+    public Callable<LotDto> update(@RequestBody @Valid LotUpdateDto dto) {
         return () -> lotService.update(dto);
     }
 

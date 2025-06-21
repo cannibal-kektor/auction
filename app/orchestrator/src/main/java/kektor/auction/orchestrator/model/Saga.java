@@ -29,7 +29,7 @@ public class Saga {
 
     @NotNull
     @Column(length = 20)
-    @Enumerated(value = EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     SagaStatus status = SagaStatus.ACTIVE;
 
     @NotNull

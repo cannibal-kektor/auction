@@ -5,7 +5,6 @@ import kektor.auction.bid.dto.NewBidRequestDto;
 import kektor.auction.bid.dto.SagaBidDto;
 import kektor.auction.bid.exception.BidNotFoundBySagaException;
 import kektor.auction.bid.exception.BidNotFoundException;
-import kektor.auction.bid.exception.StaleLotVersionException;
 import kektor.auction.bid.mapper.BidMapper;
 import kektor.auction.bid.model.Bid;
 import kektor.auction.bid.model.BidStatus;
@@ -13,12 +12,9 @@ import kektor.auction.bid.repository.BidRepository;
 import kektor.auction.bid.service.client.LotServiceClient;
 import kektor.auction.bid.service.client.SagaOrchestratorClient;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.context.request.async.DeferredResult;
 
 
@@ -58,18 +54,8 @@ public class BidService {
     public Long create(SagaBidDto bidDto) {
         Bid bid = mapper.toModel(bidDto);
         bid = bidRepository.save(bid);
-        try {
-            lotServiceClient.updateBidInfo(bidDto.lotId(), bidDto.lotVersion(),
-                    bidDto.amount(), bid.getId(), false);
-        } catch (RestClientResponseException e) {
-            if (e.getStatusCode() == HttpStatus.CONFLICT) {
-//                throw new BidConcurrencyException(bid.getLotId(), bidDto.lotVersion(), bid.getSagaId());
-                ProblemDetail detail = e.getResponseBodyAs(ProblemDetail.class);
-                long currentV = (long) detail.getProperties().get("currentLotVersion");
-                throw new StaleLotVersionException(bid.getLotId(), bidDto.sagaId(),
-                        currentV, bidDto.lotVersion());
-            }
-        }
+        lotServiceClient.updateBidInfo(bidDto.lotId(), bidDto.lotVersion(),
+                bidDto.amount(), bid.getId(), false);
         return bid.getId();
     }
 

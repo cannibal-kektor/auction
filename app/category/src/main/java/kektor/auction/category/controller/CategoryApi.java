@@ -1,4 +1,4 @@
-package kektor.auction.category.controllers;
+package kektor.auction.category.controller;
 
 import jakarta.validation.constraints.Positive;
 import kektor.auction.category.dto.CategoryDto;
@@ -17,7 +17,9 @@ import java.util.concurrent.Callable;
 @RestController
 @Validated
 @RequiredArgsConstructor
-@RequestMapping(path = "/api", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/api"
+        , produces = MediaType.APPLICATION_JSON_VALUE
+        , consumes = MediaType.APPLICATION_JSON_VALUE)
 public class CategoryApi {
 
     final CategoryService categoryService;
@@ -28,20 +30,21 @@ public class CategoryApi {
     }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Callable<CategoryDto> create(@RequestBody @Validated(Validate.Create.class) CategoryDto createDTO) {
+    @PostMapping
+    public Callable<CategoryDto> create(@RequestBody @Validated(Validate.Create.class)
+                                        CategoryDto createDTO) {
         return () -> categoryService.create(createDTO);
     }
 
-    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/{id}")
     public Callable<CategoryDto> update(
             @PathVariable("id") @Positive Long categoryId,
             @RequestBody @Validated(Validate.Update.class) CategoryDto updateDTO) {
         return () -> categoryService.update(categoryId, updateDTO);
     }
 
-    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{id}")
     public Callable<Void> delete(@PathVariable("id") @Positive Long categoryId) {
         return () -> {
             categoryService.delete(categoryId);

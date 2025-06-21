@@ -8,7 +8,7 @@ import java.time.Instant;
 public record CreditOperationDto(
         Long id,
         BigDecimal amount,
-        Instant timestamp,
+        Instant createdAt,
         CreditOperation.Status status,
         Long bidId,
         Long sagaId

@@ -3,7 +3,6 @@ package kektor.auction.bid.exception.handler;
 import jakarta.validation.ConstraintViolationException;
 import kektor.auction.bid.exception.BidNotFoundBySagaException;
 import kektor.auction.bid.exception.BidNotFoundException;
-import kektor.auction.bid.exception.StaleLotVersionException;
 import kektor.auction.bid.model.Bid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +13,7 @@ import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -44,14 +44,10 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
                 .build();
     }
 
-    @ExceptionHandler(StaleLotVersionException.class)
-    ErrorResponse handleStaleLotVersionException(StaleLotVersionException ex) {
-        return ErrorResponse.builder(ex, HttpStatus.CONFLICT, ex.getMessage())
-                .property("lotId", ex.getLotId())
-                .property("currentLotVersion", ex.getCurrentVersion())
-                .property("submittedVersion", ex.getSubmittedVersion())
-                .property("sagaId", ex.getSagaId())
-                .build();
+    @ExceptionHandler(RestClientResponseException.class)
+    ResponseEntity<ProblemDetail> handleRestClientResponseException(RestClientResponseException ex) {
+        ProblemDetail detail = ex.getResponseBodyAs(ProblemDetail.class);
+        return ResponseEntity.status(ex.getStatusCode()).body(detail);
     }
 
 

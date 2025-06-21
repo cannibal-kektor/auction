@@ -1,5 +1,6 @@
 package kektor.auction.payment.service;
 
+import jakarta.validation.constraints.Positive;
 import kektor.auction.payment.dto.PaymentAccountDto;
 import kektor.auction.payment.dto.ReplenishmentDto;
 import kektor.auction.payment.dto.ReservationDto;
@@ -38,6 +39,13 @@ public class PaymentService {
         return withOperations ? accountMapper.toDtoWithOps(account) : accountMapper.toDto(account);
     }
 
+    @Transactional(readOnly = true)
+    public Boolean checkEnoughFunds(Long userId, BigDecimal amount) {
+        return accountRepository.findByUserId(userId)
+                .map(account -> account.getBalance().compareTo(amount) > 0)
+                .orElseThrow(() -> new PaymentAccountNotFoundByUserIdException(userId));
+    }
+
     @Transactional
     public PaymentAccountDto createAccount(Long userId) {
         var account = new PaymentAccount();
@@ -50,12 +58,6 @@ public class PaymentService {
     public PaymentAccountDto replenishAmount(ReplenishmentDto replenishmentDto) {
         PaymentAccount account = accountRepository.findByUserId(replenishmentDto.userId())
                 .orElseThrow(() -> new PaymentAccountNotFoundByUserIdException(replenishmentDto.userId()));
-
-        Long submittedV = replenishmentDto.version();
-        Long currentV = account.getVersion();
-        if (!submittedV.equals(currentV)) {
-            throw new StalePaymentAccountVersionException(account.getId(), currentV, submittedV);
-        }
 
         DebitOperation debitOperation = balanceMapper.toModel(replenishmentDto);
 
@@ -76,15 +78,8 @@ public class PaymentService {
         BigDecimal accountBalance = account.getBalance();
         BigDecimal requestedAmount = reservationDto.amount();
         if (accountBalance.compareTo(requestedAmount) < 0) {
-            throw new NotEnoughAccountFundException(reservationDto.bidId(), account.getUserId(),
+            throw new NotEnoughAccountFundException(account.getUserId(),
                     accountBalance, requestedAmount);
-        }
-
-        Long submittedV = reservationDto.version();
-        Long currentV = account.getVersion();
-        if (!submittedV.equals(currentV)) {
-            throw new StalePaymentAccountVersionException(account.getId(), currentV,
-                    submittedV, reservationDto.sagaId());
         }
 
         CreditOperation creditOperation = balanceMapper.toModel(reservationDto);
@@ -99,9 +94,10 @@ public class PaymentService {
     }
 
     @Transactional
-    public void commitReservation(Long sagaId) {
+    public void commitReservation(Long sagaId, Long bidId) {
         operationRepository.findCreditOperationBySagaId(sagaId)
                 .map(operation -> operation.setStatus(CreditOperation.Status.ACCEPTED))
+                .map(operation -> operation.setBidId(bidId))
                 .orElseThrow(() -> new OperationNotFoundBySagaIdException(sagaId));
     }
 
@@ -116,6 +112,5 @@ public class PaymentService {
         operation.setStatus(CreditOperation.Status.CANCELLED);
         account.setBalance(account.getBalance().add(operation.getAmount()));
     }
-
 
 }

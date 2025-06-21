@@ -41,8 +41,7 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
     @ExceptionHandler(AuctionAlreadyStartedException.class)
     public ErrorResponse handleAuctionAlreadyStartedException(
             AuctionAlreadyStartedException ex) {
-
-        return ErrorResponse.builder(ex, HttpStatus.BAD_REQUEST, ex.getMessage())
+        return ErrorResponse.builder(ex, HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage())
                 .property("lotId", ex.getLotId())
                 .property("actionStart", ex.getAuctionStart())
                 .build();
@@ -55,7 +54,6 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
                 .property("lotId", ex.getLotId())
                 .build();
     }
-
 
 
     @Override

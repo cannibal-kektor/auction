@@ -6,6 +6,6 @@ import java.time.Instant;
 public record DebitOperationDto(
         Long id,
         BigDecimal amount,
-        Instant timestamp
+        Instant createdAt
 ) implements BalanceOperationDto {
 }

@@ -56,19 +56,18 @@ public class BidCreationSagaStep implements SagaStep {
         Long sagaId = saga.getSagaId();
         Long lotId = saga.getLotId();
         Optional<BidDto> bidOpt = bidService.fetchBid(sagaId);
+
         if (bidOpt.isPresent()) {
             var bid = bidOpt.get();
             bidService.rejectBid(sagaId);
             LotDto lot = lotService.fetchLot(lotId);
-            if (lot.winningBidId().equals(bid.id())) {
-                try {
-                    lotService.updateBidInfo(lotId, saga.getLotVersion() + 1,
-                            saga.getCompensateBidAmount(), saga.getCompensateWinningBidId(), true);
-                } catch (RestClientResponseException e) {
-                    if (e.getStatusCode() != HttpStatus.CONFLICT)
-                        throw e;
-                }
-            }
+
+            if (lot.winningBidId().equals(saga.getCompensateWinningBidId()))
+                return;
+
+            if (lot.winningBidId().equals(bid.id()))
+                lotService.updateBidInfo(lotId, lot.version(),
+                        saga.getCompensateBidAmount(), saga.getCompensateWinningBidId(), true);
         }
     }
 

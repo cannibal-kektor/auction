@@ -58,7 +58,7 @@ public class Bid {
 
     @NotNull
     @Column(length = 20)
-    @Enumerated(value = EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     BidStatus status = BidStatus.PENDING;
 
     @Override

@@ -5,6 +5,7 @@ import kektor.auction.orchestrator.dto.NewBidRequestDto;
 import kektor.auction.orchestrator.exception.*;
 import kektor.auction.orchestrator.model.Saga;
 import kektor.auction.orchestrator.service.client.LotServiceClient;
+import kektor.auction.orchestrator.service.client.PaymentServiceClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.time.Instant;
 public class SagaOrchestratorService {
 
     final LotServiceClient lotService;
+    final PaymentServiceClient paymentService;
     final SagaManager sagaManager;
 
     @Async
@@ -26,10 +28,11 @@ public class SagaOrchestratorService {
         LotDto lotDto = lotService.fetchLot(lotId);
         Instant createdOn = Instant.now();
         validateNewBid(lotDto, newBidRequestDto, createdOn);
+        validateEnoughFunds(newBidRequestDto);
         Saga saga = sagaManager.prepareSaga(newBidRequestDto, lotDto, createdOn);
-        Long recheckedVersion = lotService.fetchVersion(lotId);
-        if (!newBidRequestDto.lotVersion().equals(recheckedVersion))
-            throw new StaleLotVersionException(lotId, recheckedVersion, newBidRequestDto.lotVersion(), saga.getSagaId());
+//        Long recheckedVersion = lotService.fetchVersion(lotId);
+//        if (!newBidRequestDto.lotVersion().equals(recheckedVersion))
+//            throw new StaleLotVersionException(lotId, recheckedVersion, newBidRequestDto.lotVersion(), saga.getSagaId());
         deferredResult.setResult(saga.getSagaId());
         sagaManager.executeSaga(saga);
     }
@@ -55,5 +58,13 @@ public class SagaOrchestratorService {
                     lot.initialPrice().max(lot.highestBid()), newBidAmount);
         }
 
+    }
+
+    void validateEnoughFunds(NewBidRequestDto newBidRequestDto) {
+        Long userId = newBidRequestDto.bidderId();
+        BigDecimal amount = newBidRequestDto.amount();
+        if (!paymentService.checkEnoughFunds(userId, amount)) {
+            throw new NotEnoughAccountFundException(userId, amount);
+        }
     }
 }

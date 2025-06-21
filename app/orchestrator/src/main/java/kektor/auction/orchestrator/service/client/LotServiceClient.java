@@ -10,15 +10,14 @@ import org.springframework.web.service.annotation.PostExchange;
 
 import java.math.BigDecimal;
 
-@HttpExchange(url = "/api")
+@HttpExchange(url = "/api", accept = MediaType.APPLICATION_JSON_VALUE)
 public interface LotServiceClient {
 
-    @GetExchange(value = "/{lotId}", accept = MediaType.APPLICATION_JSON_VALUE)
+    @GetExchange("/{lotId}")
     LotDto fetchLot(@PathVariable("lotId") Long lotId);
 
     @GetExchange(value = "/{lotId}/version")
     Long fetchVersion(@PathVariable("lotId") Long lotId);
-
 
     @PostExchange(value = "/{lotId}/updateHighestBid", contentType = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     void updateBidInfo(@PathVariable("lotId") Long id,
@@ -26,7 +25,6 @@ public interface LotServiceClient {
                        @RequestParam("highestBid") BigDecimal highestBid,
                        @RequestParam("winningBidId") Long winningBidId,
                        @RequestParam("isRollback") boolean isRollback);
-
 
 
 }

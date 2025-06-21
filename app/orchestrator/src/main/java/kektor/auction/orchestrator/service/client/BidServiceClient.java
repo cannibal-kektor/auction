@@ -11,19 +11,21 @@ import org.springframework.web.service.annotation.PostExchange;
 
 import java.util.Optional;
 
-@HttpExchange(url = "/api")
+@HttpExchange(url = "/api",
+        accept = MediaType.APPLICATION_JSON_VALUE,
+        contentType = MediaType.APPLICATION_JSON_VALUE)
 public interface BidServiceClient {
 
-    @PostExchange(value = "/create", contentType = MediaType.APPLICATION_JSON_VALUE)
+    @PostExchange("/create")
     void createBid(@RequestBody BidCreateDto newBidCreateDto);
 
     @PostExchange("/commit")
-    void commitBid(Long sagaId);
+    void commitBid(@RequestBody Long sagaId);
 
     @PostExchange("/reject")
-    void rejectBid(Long sagaId);
+    void rejectBid(@RequestBody Long sagaId);
 
-    @GetExchange(value = "/saga/{sagaId}", accept = MediaType.APPLICATION_JSON_VALUE)
+    @GetExchange("/saga/{sagaId}")
     Optional<BidDto> fetchBid(@PathVariable("sagaId") Long sagaId);
 
 }

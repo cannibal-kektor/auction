@@ -26,8 +26,6 @@ public class CreditOperation extends BalanceOperation {
     private Status status = Status.RESERVED;
 
     @Positive
-    @NotNull
-    @Column(updatable = false)
     private Long bidId;
 
     @Positive

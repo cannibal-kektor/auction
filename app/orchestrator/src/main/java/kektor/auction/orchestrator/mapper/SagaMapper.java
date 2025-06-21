@@ -4,6 +4,7 @@ package kektor.auction.orchestrator.mapper;
 import kektor.auction.orchestrator.dto.LotDto;
 import kektor.auction.orchestrator.dto.NewBidRequestDto;
 import kektor.auction.orchestrator.dto.BidCreateDto;
+import kektor.auction.orchestrator.dto.ReservationDto;
 import kektor.auction.orchestrator.model.Saga;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -25,4 +26,7 @@ public interface SagaMapper {
     @Mapping(source = "newBidAmount", target = "amount")
     BidCreateDto toBid(Saga saga);
 
+    @Mapping(source = "bidderId", target = "userId")
+    @Mapping(source = "newBidAmount", target = "amount")
+    ReservationDto toReservation(Saga saga);
 }

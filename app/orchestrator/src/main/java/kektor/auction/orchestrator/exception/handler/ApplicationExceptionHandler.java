@@ -1,13 +1,10 @@
 package kektor.auction.orchestrator.exception.handler;
 
 import jakarta.validation.ConstraintViolationException;
-import kektor.auction.orchestrator.exception.AuctionAlreadyStartedException;
-import kektor.auction.orchestrator.exception.ConcurrentSagaException;
-import kektor.auction.orchestrator.exception.StaleLotVersionException;
+import kektor.auction.orchestrator.exception.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.*;
 import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
@@ -24,15 +21,55 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
-//@RestControllerAdvice(basePackages = "com.example.demo.book.controllers")
 @RestControllerAdvice
 public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
 
-    public static final String CONCURRENT_CONFLICT = "Someone has already updated the resource, try again";
+    @ExceptionHandler(TooEarlyBidException.class)
+    public ErrorResponse handleTooEarlyBidException(TooEarlyBidException ex) {
+        return ErrorResponse.builder(ex, HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage())
+                .property("lotId", ex.getLotId())
+                .property("bidAttemptTime", ex.getBidAttemptTime())
+                .property("auctionStartTime", ex.getAuctionStart())
+                .build();
+    }
 
-//    final BearerTokenAuthenticationEntryPoint authenticationEntryPoint;
+    @ExceptionHandler(TooLateBidException.class)
+    public ErrorResponse handleTooLateBidException(TooLateBidException ex) {
+        return ErrorResponse.builder(ex, HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage())
+                .property("lotId", ex.getLotId())
+                .property("bidAttemptTime", ex.getBidAttemptTime())
+                .property("auctionEndTime", ex.getAuctionEnd())
+                .build();
+    }
+
+    @ExceptionHandler(TooLowBidAmountException.class)
+    public ErrorResponse handleTooLowBidAmountException(TooLowBidAmountException ex) {
+        return ErrorResponse.builder(ex, HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage())
+                .property("lotId", ex.getLotId())
+                .property("attemptAmount", ex.getAttemptAmount())
+                .property("lowerLimitAmountExclusive", ex.getLowerLimitBidAmountExclusive())
+                .build();
+    }
+
+    @ExceptionHandler(NotEnoughAccountFundException.class)
+    public ErrorResponse handleNotEnoughAccountFundException(NotEnoughAccountFundException ex) {
+        return ErrorResponse.builder(ex, HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage())
+                .property("userId", ex.getUserId())
+                .property("amount", ex.getRequestedAmount())
+                .build();
+    }
 
 
+    @ExceptionHandler(StaleLotVersionException.class)
+    public ErrorResponse handleStaleLotVersionException(
+            StaleLotVersionException ex) {
+        return ErrorResponse.builder(ex, HttpStatus.CONFLICT, ex.getMessage())
+                .property("lotId", ex.getLotId())
+                .property("currentLotVersion", ex.getCurrentVersion())
+                .property("submittedVersion", ex.getSubmittedVersion())
+                .property("sagaId", ex.getSagaId())
+                .build();
+    }
 
     @ExceptionHandler(ConcurrentSagaException.class)
     public ErrorResponse handleConcurrentSagaException(
@@ -43,33 +80,15 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
                 .build();
     }
 
-    @ExceptionHandler(StaleLotVersionException.class)
-    public ErrorResponse handleStaleItemVersionException(
-            StaleLotVersionException ex) {
-        return ErrorResponse.builder(ex, HttpStatus.CONFLICT, ex.getMessage())
-                .property("lotId", ex.getLotId())
-                .property("currentLotVersion", ex.getCurrentVersion())
-                .property("submittedVersion", ex.getSubmittedVersion())
-                .property("sagaId", ex.getSagaId())
-                .build();
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ErrorResponse handleConstraintViolationException(Exception ex) {
+        return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
-
-    @ExceptionHandler(AuctionAlreadyStartedException.class)
-    public ErrorResponse handleAuctionAlreadyStartedException(
-            AuctionAlreadyStartedException ex) {
-
-        return ErrorResponse.builder(ex, HttpStatus.BAD_REQUEST, ex.getMessage())
-                .property("lotId", ex.getLotId())
-                .property("actionStart", ex.getAuctionStart())
-                .build();
+    @ExceptionHandler(DataAccessException.class)
+    public ErrorResponse handleDataAccessException(Exception ex) {
+        return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
-
-    @ExceptionHandler(OptimisticLockingFailureException.class)
-    ErrorResponse handleOptimisticLockException(OptimisticLockingFailureException ex) {
-        return ErrorResponse.create(ex, HttpStatus.CONFLICT, CONCURRENT_CONFLICT);
-    }
-
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -104,87 +123,9 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
     }
 
 
-    @ExceptionHandler(DataAccessException.class)
-    public ErrorResponse handleInvalidDatabaseRequestException(
-            Exception ex) {
-        return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-//    @ExceptionHandler(AccessDeniedException.class)
-//    public ResponseEntity<ApiCallError<String>> handleAccessDeniedException(
-//            HttpServletRequest request, AccessDeniedException ex) {
-//        logger.error("handleAccessDeniedException {}\n", request.getRequestURI(), ex);
-//
-//        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-//                .body(new ApiCallError<>("Access denied!", List.of(ex.getMessage())));
-
-//    }
-
-//    @ExceptionHandler(BadCredentialsException.class)
-//    public void handleAccessDeniedException(
-//            HttpServletRequest request, HttpServletResponse response, BadCredentialsException ex) {
-//        authenticationEntryPoint.commence(request, response, ex);
-//    }
-
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ErrorResponse handleInvalidBidException(
-            Exception ex) {
-        return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-
-
-
     @ExceptionHandler(Exception.class)
     ErrorResponse handleAll(Exception ex) {
         return ErrorResponse.create(ex, HttpStatus.INTERNAL_SERVER_ERROR, Optional.ofNullable(ex.getMessage())
                 .orElse("Internal error"));
     }
-
-
-    //    @ExceptionHandler({ Exception.class })
-//    public ResponseEntity<Object> handleAll(
-//            Exception ex,
-//            WebRequest request) {
-//
-//
-//        return ResponseEntityBuilder.build(err);
-//    }
-
-
-//    private ResponseEntity<ErrorResponse> buildErrorResponse(
-//            Exception exception,
-//            HttpStatus httpStatus,
-//            WebRequest request
-//    ) {
-//        return buildErrorResponse(
-//                exception,
-//                exception.getMessage(),
-//                httpStatus,
-//                request);
-//    }
-//
-//    private ResponseEntity<ErrorResponse> buildErrorResponse(
-//            Exception exception,
-//            String message,
-//            HttpStatus httpStatus,
-//            WebRequest request
-//    ) {
-//        ErrorResponse errorResponse = new ErrorResponse(
-//                httpStatus.value(),
-//                exception.getMessage()
-//        );
-//
-//        if(printStackTrace && isTraceOn(request)){
-//            errorResponse.setStackTrace(ExceptionUtils.getStackTrace(exception));
-//        }
-//        return ResponseEntity.status(httpStatus).body(errorResponse);
-//    }
-//
-//    private boolean isTraceOn(WebRequest request) {
-//        String [] value = request.getParameterValues(TRACE);
-//        return Objects.nonNull(value)
-//                && value.length > 0
-//                && value[0].contentEquals("true");
-//    }
-//}
-
 }

@@ -5,6 +5,8 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Past;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SourceType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -21,9 +23,9 @@ public abstract class BalanceOperation extends IdEntity {
     @Column(nullable = false, updatable = false, precision = 19, scale = 4)
     private BigDecimal amount;
 
-    @Past
+    @CreationTimestamp(source = SourceType.DB)
     @Column(nullable = false, updatable = false)
-    private Instant timestamp;
+    private Instant createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false, updatable = false)
