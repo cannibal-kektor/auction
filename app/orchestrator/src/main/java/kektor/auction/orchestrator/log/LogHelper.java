@@ -19,6 +19,10 @@ public class LogHelper {
     public static final String BID_CREATE_COMMIT_EXCEPTION_LOG = "Bid creation Saga step: Commit phase exception: Message:[{}] Saga:[{}]";
     public static final String BID_CREATE_COMPENSATE_EXCEPTION_LOG = "Bid creation Saga step: Compensation phase exception: Message:[{}] Saga:[{}]";
 
+    public static final String PAYMENT_EXECUTION_EXCEPTION_LOG = "Payment Saga step: Execution phase exception. Message:[{}] Saga:[{}]";
+    public static final String PAYMENT_COMMIT_EXCEPTION_LOG = "Payment Saga step: Commit phase exception: Message:[{}] Saga:[{}]";
+    public static final String PAYMENT_COMPENSATE_EXCEPTION_LOG = "Payment Saga step: Compensation phase exception: Message:[{}] Saga:[{}]";
+
     public static final String ATTEMPT_TO_RERUN_STALLED_COMPENSATION = "Starting attempt to resolve stalled saga. Rerunning compensate steps. Attempt:[{}] Saga:[{}]";
     public static final String FAILED_ATTEMPT_TO_RERUN_STALLED_COMPENSATION = "Failed attempt to resolve stalled saga. Message:[{}] Saga:[{}]";
     public static final String MANUAL_INTERVENTION_MAYBE_REQUIRED = "DLT record received [Saga]: Manual intervention maybe required to resolve stalled saga. Exception=[{}] Message:[{}] Saga:[{}]";
@@ -46,6 +50,19 @@ public class LogHelper {
             case EXECUTE -> BID_CREATE_EXECUTION_EXCEPTION_LOG;
             case COMMIT -> BID_CREATE_COMMIT_EXCEPTION_LOG;
             case COMPENSATE -> BID_CREATE_COMPENSATE_EXCEPTION_LOG;
+        };
+        log.atError()
+                .setMessage(msg)
+                .addArgument(ex.getMessage())
+                .addArgument(saga)
+                .log();
+    }
+
+    public <T extends SagaStep> void logPaymentStepException(SagaPhase phase, Saga saga, Throwable ex) {
+        String msg = switch (phase){
+            case EXECUTE -> PAYMENT_EXECUTION_EXCEPTION_LOG;
+            case COMMIT -> PAYMENT_COMMIT_EXCEPTION_LOG;
+            case COMPENSATE -> PAYMENT_COMPENSATE_EXCEPTION_LOG;
         };
         log.atError()
                 .setMessage(msg)

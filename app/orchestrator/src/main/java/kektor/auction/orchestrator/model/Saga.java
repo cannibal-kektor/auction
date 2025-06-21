@@ -12,7 +12,9 @@ import java.time.Instant;
 
 @Entity
 @Data
-@Table(name = "SAGA")
+@Table(name = "saga",
+        uniqueConstraints =
+        @UniqueConstraint(name = "idx_saga_lot_unique ", columnNames = {"lot_id","lot_version"}))
 public class Saga {
 
     public static final String ID_GENERATOR = "ID_GENERATOR";

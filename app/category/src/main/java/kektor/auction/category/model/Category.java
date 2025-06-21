@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "CATEGORY",
+@Table(name = "category",
         uniqueConstraints = @UniqueConstraint(name = "uk_category_name", columnNames = {"name"}))
 public class Category {
 
@@ -18,7 +18,10 @@ public class Category {
     public static final String ID_GENERATOR_SEQUENCE_NAME = "id_sequence_generator";
 
     @Id
-    @SequenceGenerator(name = ID_GENERATOR, sequenceName = ID_GENERATOR_SEQUENCE_NAME, initialValue = 100)
+    @SequenceGenerator(name = ID_GENERATOR,
+            sequenceName = ID_GENERATOR_SEQUENCE_NAME,
+            allocationSize = 20,
+            initialValue = 100)
     @GeneratedValue(generator = ID_GENERATOR)
     Long id;
 

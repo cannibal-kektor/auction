@@ -5,17 +5,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Immutable;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
 
 @Entity
-@Table(name = "BID",
-        uniqueConstraints = @UniqueConstraint(name = "uk_sagaId", columnNames = {"sagaId"}))
-//                , @UniqueConstraint(name = "uk_lotId_lotVersion", columnNames = "lotId, lotVersion")})
+@Table(name = "bid",
+        uniqueConstraints = @UniqueConstraint(name = "uk_saga_id", columnNames = {"saga_id"}))
 @Getter
 @Setter
 public class Bid {

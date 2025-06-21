@@ -12,10 +12,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "payment_accounts")
+@Table(name = "payment_accounts",
+        uniqueConstraints = @UniqueConstraint(name = "uq_user_account ", columnNames = {"user_id"}))
 @Getter
 @Setter
-public class PaymentAccount extends IdEntity{
+public class PaymentAccount extends IdEntity {
 
     @DecimalMin("0")
     @Column(nullable = false, precision = 19, scale = 4)
@@ -27,6 +28,7 @@ public class PaymentAccount extends IdEntity{
 
     @Positive
     @NotNull
+    @Column(updatable = false)
     Long userId;
 
     @OneToMany(

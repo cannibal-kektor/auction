@@ -19,7 +19,7 @@ import java.time.Instant;
 @DiscriminatorColumn(name = "operation_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class BalanceOperation extends IdEntity {
 
-    @DecimalMin(value = "0", inclusive = false)
+    @DecimalMin(value = "0.01")
     @Column(nullable = false, updatable = false, precision = 19, scale = 4)
     private BigDecimal amount;
 

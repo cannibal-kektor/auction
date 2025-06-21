@@ -34,7 +34,7 @@ spring:
 
   # ---DataSourceAutoConfiguration--------------------------------------
   datasource:
-    url: jdbc:postgresql://localhost:5432/auction
+    url: jdbc:postgresql://localhost:5434/auction
     username: testUser
     password: testPassword
 

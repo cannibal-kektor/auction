@@ -60,8 +60,8 @@ public class Lot {
     Long sellerId;
 
     @NotNull
-    @DecimalMin("0")
-    BigDecimal initialPrice = new BigDecimal(0);
+    @DecimalMin(value = "0", inclusive = false)
+    BigDecimal initialPrice;
 
     @NotNull
     @Future(message = "{Item.auctionStart.Future}")
@@ -73,6 +73,7 @@ public class Lot {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     Instant auctionEnd;
 
+    @Column(name = "category_id")
     @ElementCollection
     @CollectionTable(
             name = "lot_categories",
@@ -80,11 +81,11 @@ public class Lot {
             foreignKey = @ForeignKey(name = "lot_categories_foreign_key",
                     value = ConstraintMode.CONSTRAINT),
             indexes = @Index(
-                    name = "idx_lot_categories",
-                    columnList = "categories_id"
+                    name = "idx_lot_category",
+                    columnList = "category_id"
             )
     )
-    protected Set<@Positive Long> categoriesId = new HashSet<>();
+    protected Set<@Positive @NotNull Long> categoriesId = new HashSet<>();
 
     @Embedded
     LotStat lotStat = new LotStat();

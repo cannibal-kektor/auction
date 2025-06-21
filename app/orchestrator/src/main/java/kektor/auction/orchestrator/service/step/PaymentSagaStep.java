@@ -1,11 +1,14 @@
 package kektor.auction.orchestrator.service.step;
 
 import kektor.auction.orchestrator.dto.BidDto;
+import kektor.auction.orchestrator.log.LogHelper;
 import kektor.auction.orchestrator.mapper.SagaMapper;
 import kektor.auction.orchestrator.model.Saga;
+import kektor.auction.orchestrator.service.SagaPhase;
 import kektor.auction.orchestrator.service.client.BidServiceClient;
 import kektor.auction.orchestrator.service.client.PaymentServiceClient;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
@@ -24,6 +27,7 @@ public class PaymentSagaStep implements SagaStep {
     final PaymentServiceClient paymentService;
     final BidServiceClient bidService;
     final SagaMapper sagaMapper;
+    final LogHelper logHelper;
 
     Saga saga;
 
@@ -57,18 +61,24 @@ public class PaymentSagaStep implements SagaStep {
         }
     }
 
+    @SneakyThrows
     @Override
-    public Void handleExecutionException(Throwable exception) {
-        return null;
+    public Void handleExecutionException(Throwable ex) {
+        logHelper.logPaymentStepException(SagaPhase.EXECUTE, saga, ex);
+        throw ex;
     }
 
+    @SneakyThrows
     @Override
-    public Void handleCommitException(Throwable exception) {
-        return null;
+    public Void handleCommitException(Throwable ex) {
+        logHelper.logPaymentStepException(SagaPhase.COMMIT, saga, ex);
+        throw ex;
     }
 
+    @SneakyThrows
     @Override
-    public Void handleCompensateException(Throwable throwable) {
-        return null;
+    public Void handleCompensateException(Throwable ex) {
+        logHelper.logPaymentStepException(SagaPhase.COMPENSATE, saga, ex);
+        throw ex;
     }
 }

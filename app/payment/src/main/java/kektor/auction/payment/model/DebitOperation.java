@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "debet_operations")
 @PrimaryKeyJoinColumn(name = "operation_id")
-@DiscriminatorValue("DEBET")
+@DiscriminatorValue("DEBIT")
 public class DebitOperation extends BalanceOperation {
 
 }
