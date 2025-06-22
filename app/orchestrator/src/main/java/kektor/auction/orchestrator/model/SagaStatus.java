@@ -3,7 +3,6 @@ package kektor.auction.orchestrator.model;
 public enum SagaStatus {
     ACTIVE,
     STALLED,
-    FINISHED,
-    CONCURRENT_REJECT,
-    FAILED
+    COMPLETED,
+    COMPENSATED
 }

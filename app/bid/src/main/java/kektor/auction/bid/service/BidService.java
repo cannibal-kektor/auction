@@ -1,17 +1,18 @@
 package kektor.auction.bid.service;
 
 import kektor.auction.bid.dto.BidDto;
-import kektor.auction.bid.dto.NewBidRequestDto;
-import kektor.auction.bid.dto.SagaBidDto;
+import kektor.auction.bid.dto.BidRequestDto;
+import kektor.auction.bid.dto.BidCreateDto;
+import kektor.auction.bid.exception.BidConcurrencyException;
 import kektor.auction.bid.exception.BidNotFoundBySagaException;
 import kektor.auction.bid.exception.BidNotFoundException;
 import kektor.auction.bid.mapper.BidMapper;
 import kektor.auction.bid.model.Bid;
 import kektor.auction.bid.model.BidStatus;
 import kektor.auction.bid.repository.BidRepository;
-import kektor.auction.bid.service.client.LotServiceClient;
 import kektor.auction.bid.service.client.SagaOrchestratorClient;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +26,6 @@ public class BidService {
     final BidRepository bidRepository;
     final BidMapper mapper;
     final SagaOrchestratorClient orchestratorServiceClient;
-    final LotServiceClient lotServiceClient;
     final PendingConfirmationService pendingConfirmationService;
 
     //TODO Cacheable
@@ -45,17 +45,20 @@ public class BidService {
     }
 
 
-    public void placeBid(NewBidRequestDto newBidRequestDto, DeferredResult<ResponseEntity<Void>> deferredResult) {
-        long sagaId = orchestratorServiceClient.placeBid(newBidRequestDto);
+    public void placeBid(BidRequestDto bidRequestDto, DeferredResult<ResponseEntity<Object>> deferredResult) {
+        long sagaId = orchestratorServiceClient.placeBid(bidRequestDto);
         pendingConfirmationService.addWaitingClient(sagaId, deferredResult);
     }
 
 
-    public Long create(SagaBidDto bidDto) {
+    @Transactional
+    public Long create(BidCreateDto bidDto) {
         Bid bid = mapper.toModel(bidDto);
-        bid = bidRepository.save(bid);
-        lotServiceClient.updateBidInfo(bidDto.lotId(), bidDto.lotVersion(),
-                bidDto.amount(), bid.getId(), false);
+        try {
+            bid = bidRepository.saveAndFlush(bid);
+        } catch (DataIntegrityViolationException e) {
+            throw new BidConcurrencyException(bidDto);
+        }
         return bid.getId();
     }
 

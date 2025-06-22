@@ -1,9 +1,10 @@
 package kektor.auction.orchestrator.repository;
 
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import kektor.auction.orchestrator.model.Saga;
 import kektor.auction.orchestrator.model.SagaStatus;
 import org.springframework.data.jpa.repository.*;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -12,10 +13,12 @@ import java.util.List;
 @Repository
 public interface SagaRepository extends JpaRepository<Saga, Long> {
 
-    boolean existsByLotIdAndStatusAndCreatedOnIsBefore(Long lotId, SagaStatus status, Instant createdOn);
+    @QueryHints(
+            @QueryHint(
+                    name = "jakarta.persistence.lock.timeout",
+                    value = "2000"
+            ))
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<Saga> findStalledByStatusAndCreationTimeIsBefore(SagaStatus status, Instant creationTime);
 
-    List<Saga> findStalledByStatusAndCreatedOnIsBefore(SagaStatus status, Instant createdOn);
-
-    @Query("select s.status from Saga s where s.sagaId= :id")
-    SagaStatus findSagaStatusByLotId(@Param("id") Long id);
 }

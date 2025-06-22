@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
+import org.springframework.http.ProblemDetail;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -14,7 +15,7 @@ import java.time.Instant;
 @Data
 @Table(name = "saga",
         uniqueConstraints =
-        @UniqueConstraint(name = "idx_saga_lot_unique ", columnNames = {"lot_id","lot_version"}))
+        @UniqueConstraint(name = "only_one_active_saga_per_lot ", columnNames = {"lot_id"}))
 public class Saga {
 
     public static final String ID_GENERATOR = "ID_GENERATOR";
@@ -46,7 +47,7 @@ public class Saga {
 
     @NotNull
     @Column(updatable = false)
-    Instant createdOn;
+    Instant creationTime;
 
     @NotNull
     @Positive
@@ -67,6 +68,10 @@ public class Saga {
     @Positive
     @Column(updatable = false)
     Long compensateWinningBidId;
+
+    @Column(columnDefinition = "jsonb")
+    @Convert(converter = ProblemDetailConverter.class)
+    volatile ProblemDetail problemDetail;
 
 
     @Override

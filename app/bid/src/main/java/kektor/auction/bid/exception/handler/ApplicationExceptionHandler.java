@@ -1,6 +1,7 @@
 package kektor.auction.bid.exception.handler;
 
 import jakarta.validation.ConstraintViolationException;
+import kektor.auction.bid.exception.BidConcurrencyException;
 import kektor.auction.bid.exception.BidNotFoundBySagaException;
 import kektor.auction.bid.exception.BidNotFoundException;
 import kektor.auction.bid.model.Bid;
@@ -41,6 +42,18 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         return ErrorResponse.builder(ex, HttpStatus.NOT_FOUND, ex.getMessage())
                 .property("resource", Bid.class.getSimpleName())
                 .property("sagaId", ex.getSagaId())
+                .build();
+    }
+
+    @ExceptionHandler(BidConcurrencyException.class)
+    ErrorResponse handleBidConcurrencyException(BidConcurrencyException ex) {
+        return ErrorResponse.builder(ex, HttpStatus.CONFLICT, ex.getMessage())
+                .property("resource", Bid.class.getSimpleName())
+                .property("sagaId", ex.getSagaId())
+                .property("lotId", ex.getLotId())
+                .property("bidderId", ex.getBidderId())
+                .property("amount", ex.getAmount())
+                .property("triedCreatedOn", ex.getTriedCreatedOn())
                 .build();
     }
 

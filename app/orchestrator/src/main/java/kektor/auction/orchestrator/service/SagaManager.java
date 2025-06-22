@@ -1,7 +1,7 @@
 package kektor.auction.orchestrator.service;
 
 import kektor.auction.orchestrator.dto.LotDto;
-import kektor.auction.orchestrator.dto.NewBidRequestDto;
+import kektor.auction.orchestrator.dto.BidRequestDto;
 import kektor.auction.orchestrator.exception.ConcurrentSagaException;
 import kektor.auction.orchestrator.log.LogHelper;
 import kektor.auction.orchestrator.mapper.SagaMapper;
@@ -13,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.ProblemDetail;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,10 +24,13 @@ import org.springframework.web.client.RestClientResponseException;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.runAsync;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.ProblemDetail.forStatusAndDetail;
 
 @Slf4j
 @Service
@@ -40,13 +45,14 @@ public class SagaManager {
     final LogHelper logHelper;
 
     @Transactional
-    public Saga prepareSaga(NewBidRequestDto newBidRequestDto, LotDto lotDto, Instant createdOn) {
+    public Saga prepareSaga(BidRequestDto bidRequestDto, LotDto lotDto, Instant creationTime) {
         Long lotId = lotDto.id();
-        if (sagaRepository.existsByLotIdAndStatusAndCreatedOnIsBefore(
-                lotId, SagaStatus.ACTIVE, createdOn))
-            throw new ConcurrentSagaException(lotId, createdOn);
-        Saga saga = mapper.toModel(newBidRequestDto, lotDto, createdOn);
-        saga = sagaRepository.saveAndFlush(saga);
+        Saga saga = mapper.toModel(bidRequestDto, lotDto, creationTime);
+        try {
+            saga = sagaRepository.saveAndFlush(saga);
+        } catch (DataIntegrityViolationException e) {
+            throw new ConcurrentSagaException(lotId, creationTime);
+        }
         return saga;
     }
 
@@ -54,8 +60,8 @@ public class SagaManager {
         List<SagaStep> steps = getSagaSteps(saga);
         executionPhase(steps, saga)
                 .thenCompose(_ -> commitPhase(steps, saga)
-                        .exceptionallyCompose(cause -> compensatePhase(steps, saga, cause)))
-                .exceptionallyCompose(cause -> compensatePhase(steps, saga, cause));
+                        .exceptionallyCompose(_ -> compensatePhase(steps, saga)))
+                .exceptionallyCompose(_ -> compensatePhase(steps, saga));
     }
 
     CompletableFuture<Void> executionPhase(List<SagaStep> steps, Saga saga) {
@@ -65,10 +71,10 @@ public class SagaManager {
                         .exceptionally(step::handleExecutionException))
                 .toArray(CompletableFuture<?>[]::new))
                 .orTimeout(15, TimeUnit.SECONDS)
-                .exceptionally(ex -> handleExecutionPhaseException(ex, saga));
+                .exceptionally(ex -> handlePhaseException(SagaPhase.EXECUTE, ex, saga));
     }
 
-    CompletableFuture<Saga> commitPhase(List<SagaStep> steps, Saga saga) {
+    CompletableFuture<Void> commitPhase(List<SagaStep> steps, Saga saga) {
         return allOf(steps.stream()
                 .map(step -> runAsync(step::commit, executor)
                         .orTimeout(10, TimeUnit.SECONDS)
@@ -77,38 +83,28 @@ public class SagaManager {
                 .orTimeout(15, TimeUnit.SECONDS)
                 .thenApply(_ -> completeSaga(saga))
                 .thenApply(brokerService::notifySagaStatusUpdate)
-                .exceptionally(ex -> handleCommitPhaseException(ex, saga));
+                .exceptionally(ex -> handlePhaseException(SagaPhase.COMMIT, ex, saga));
     }
 
-    CompletableFuture<Saga> compensatePhase(List<SagaStep> steps, Saga saga, Throwable sagaFailCause, boolean isRetry) {
+    CompletableFuture<Void> compensatePhase(List<SagaStep> steps, Saga saga, boolean isStalled) {
         return allOf(steps.stream()
                 .map(step -> runAsync(step::compensate, executor)
                         .orTimeout(10, TimeUnit.SECONDS)
                         .exceptionally(step::handleCompensateException))
                 .toArray(CompletableFuture<?>[]::new))
                 .orTimeout(15, TimeUnit.SECONDS)
-                .thenApply(_ -> failSaga(saga, sagaFailCause))
+                .thenApply(_ -> failSaga(saga))
                 .thenApply(brokerService::notifySagaStatusUpdate)
-                .exceptionally(ex -> {
-                    if (!isRetry)
-                        return handleCompensatePhaseException(ex, saga);
-                    else
-                        return handleStalledCompensatePhaseException(ex, saga);
-                });
+                .exceptionally(ex -> handleCompensatePhaseException(ex, saga, isStalled));
     }
 
-    CompletableFuture<Saga> compensatePhase(List<SagaStep> steps, Saga saga, Throwable sagaFailCause) {
-        return compensatePhase(steps, saga, sagaFailCause, false);
-    }
-
-    void tryAbortedCompensation(List<SagaStep> steps, Saga saga) {
-        compensatePhase(steps, saga, null, false);
+    CompletableFuture<Void> compensatePhase(List<SagaStep> steps, Saga saga) {
+        return compensatePhase(steps, saga, false);
     }
 
     void tryRetryStalledCompensation(List<SagaStep> steps, Saga saga) {
-        compensatePhase(steps, saga, null, true);
+        compensatePhase(steps, saga, true);
     }
-
 
     List<SagaStep> getSagaSteps(Saga saga) {
         return sagaSteps.stream()
@@ -117,35 +113,50 @@ public class SagaManager {
     }
 
     public Saga completeSaga(Saga saga) {
-        saga.setStatus(SagaStatus.FINISHED);
-        saga = sagaRepository.save(saga);
-        return saga;
+        saga.setStatus(SagaStatus.COMPLETED);
+        return sagaRepository.save(saga);
     }
 
-    public Saga failSaga(Saga saga, Throwable sagaFailCause) {
-        if (sagaFailCause instanceof RestClientResponseException e
-                && e.getStatusCode() == HttpStatus.CONFLICT) {
-            saga.setStatus(SagaStatus.CONCURRENT_REJECT);
-        } else {
-            saga.setStatus(SagaStatus.FAILED);
+    public Saga failSaga(Saga saga) {
+        saga.setStatus(SagaStatus.COMPENSATED);
+        return sagaRepository.save(saga);
+    }
+
+    @SneakyThrows
+    public Void handlePhaseException(SagaPhase phase, Throwable ex, Saga saga) {
+        logHelper.logPhaseException(phase, saga, ex);
+
+        ProblemDetail detail = null;
+        if (ex instanceof CompletionException e) {
+            if (e.getCause() instanceof RestClientResponseException restEx) {
+                detail = restEx.getResponseBodyAs(ProblemDetail.class);
+                if (detail == null) {
+                    detail = forStatusAndDetail(restEx.getStatusCode(),
+                            restEx.getResponseBodyAsString());
+                }
+            }
+            ex = e.getCause();
         }
-        saga = sagaRepository.save(saga);
-        return saga;
-    }
 
-    @SneakyThrows
-    public Void handleExecutionPhaseException(Throwable ex, Saga saga) {
-        logHelper.logPhaseException(SagaPhase.EXECUTE, saga, ex);
+        if (detail == null) {
+            detail = forStatusAndDetail(INTERNAL_SERVER_ERROR, ex.getMessage());
+        }
+
+        try {
+            saga.setProblemDetail(detail);
+            sagaRepository.save(saga);
+        } catch (DataAccessException e) {
+            logHelper.logPhaseException(phase, saga, e);
+        }
         throw ex;
     }
 
     @SneakyThrows
-    public Saga handleCommitPhaseException(Throwable ex, Saga saga) {
-        logHelper.logPhaseException(SagaPhase.COMMIT, saga, ex);
-        throw ex;
-    }
-
-    public Saga handleCompensatePhaseException(Throwable ex, Saga saga) {
+    public Void handleCompensatePhaseException(Throwable ex, Saga saga, boolean isStalled) {
+        if (isStalled) {
+            logHelper.logFailedAttemptResolvingStalledCompensation(saga, ex);
+            throw ex;
+        }
         logHelper.logPhaseException(SagaPhase.COMPENSATE, saga, ex);
         saga.setStatus(SagaStatus.STALLED);
         try {
@@ -155,18 +166,7 @@ public class SagaManager {
         }
         brokerService.rearrangeStalledCompensation(saga);
         brokerService.notifySagaStatusUpdate(saga);
-        return saga;
-    }
-
-    @SneakyThrows
-    public Saga handleStalledCompensatePhaseException(Throwable ex, Saga saga) {
-        logHelper.logFailedAttemptResolvingStalledCompensation(saga, ex);
-        SagaStatus status = sagaRepository.findSagaStatusByLotId(saga.getSagaId());
-        if (status == SagaStatus.ACTIVE) {
-            saga.setStatus(SagaStatus.STALLED);
-            sagaRepository.save(saga);
-        }
-        throw ex;
+        return null;
     }
 
 

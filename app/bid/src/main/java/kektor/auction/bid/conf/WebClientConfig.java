@@ -1,6 +1,5 @@
 package kektor.auction.bid.conf;
 
-import kektor.auction.bid.service.client.LotServiceClient;
 import kektor.auction.bid.service.client.SagaOrchestratorClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,16 +23,6 @@ public class WebClientConfig {
                 .build();
         return createProxy(restClient, SagaOrchestratorClient.class);
     }
-
-    @Bean
-    public LotServiceClient lotServiceClient() {
-        RestClient restClient = RestClient.builder()
-                .baseUrl("http://localhost:8081")
-                .requestFactory(timeLimitedRequestFactory())
-                .build();
-        return createProxy(restClient, LotServiceClient.class);
-    }
-
 
     private <T> T createProxy(RestClient restClient, Class<T> clazz) {
         return HttpServiceProxyFactory

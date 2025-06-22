@@ -3,6 +3,7 @@ package kektor.auction.orchestrator.service;
 import kektor.auction.orchestrator.dto.msg.SagaStatusMessage;
 import kektor.auction.orchestrator.exception.BrokerSendingMessageException;
 import kektor.auction.orchestrator.log.LogHelper;
+import kektor.auction.orchestrator.mapper.SagaMapper;
 import kektor.auction.orchestrator.model.Saga;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 public class BrokerService {
 
     final KafkaTemplate<?, Object> kafkaTemplate;
+    final SagaMapper sagaMapper;
     final LogHelper logHelper;
 
     @Value("${app.kafka.stalled-saga-topic}")
@@ -32,14 +34,14 @@ public class BrokerService {
                 });
     }
 
-    public Saga notifySagaStatusUpdate(Saga saga) {
-        var msg = new SagaStatusMessage(saga.getSagaId(), saga.getStatus());
+    public Void notifySagaStatusUpdate(Saga saga) {
+        SagaStatusMessage msg = sagaMapper.toStatusMessage(saga);
         kafkaTemplate.send(sagaStatusTopic, msg)
                 .exceptionally(ex -> {
                     logHelper.logErrorWhileSendingSagaStatusUpdate(msg, ex);
                     return null;
                 });
-        return saga;
+        return null;
     }
 
 }

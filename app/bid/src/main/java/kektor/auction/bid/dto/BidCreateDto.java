@@ -3,7 +3,7 @@ package kektor.auction.bid.dto;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-public record SagaBidDto(
+public record BidCreateDto(
 
         Long lotId,
 
@@ -11,11 +11,9 @@ public record SagaBidDto(
 
         Long sagaId,
 
-        Instant createdOn,
-
         BigDecimal amount,
 
-        Long lotVersion
+        Instant creationTime
 
 ) {
 }

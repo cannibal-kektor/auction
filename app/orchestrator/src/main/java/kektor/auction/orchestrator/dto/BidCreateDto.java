@@ -11,11 +11,9 @@ public record BidCreateDto(
 
         Long sagaId,
 
-        Long lotVersion,
-
         BigDecimal amount,
 
-        Instant createdOn
+        Instant creationTime
 
 ) {
 }

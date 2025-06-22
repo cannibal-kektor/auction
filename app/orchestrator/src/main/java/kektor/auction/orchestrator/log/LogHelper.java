@@ -3,7 +3,6 @@ package kektor.auction.orchestrator.log;
 import kektor.auction.orchestrator.dto.msg.SagaStatusMessage;
 import kektor.auction.orchestrator.model.Saga;
 import kektor.auction.orchestrator.service.SagaPhase;
-import kektor.auction.orchestrator.service.step.SagaStep;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +21,10 @@ public class LogHelper {
     public static final String PAYMENT_EXECUTION_EXCEPTION_LOG = "Payment Saga step: Execution phase exception. Message:[{}] Saga:[{}]";
     public static final String PAYMENT_COMMIT_EXCEPTION_LOG = "Payment Saga step: Commit phase exception: Message:[{}] Saga:[{}]";
     public static final String PAYMENT_COMPENSATE_EXCEPTION_LOG = "Payment Saga step: Compensation phase exception: Message:[{}] Saga:[{}]";
+
+    public static final String LOT_UPDATE_EXECUTION_EXCEPTION_LOG = "Lot Update Saga step: Execution phase exception. Message:[{}] Saga:[{}]";
+    public static final String LOT_UPDATE_COMMIT_EXCEPTION_LOG = "Lot Update Saga step: Commit phase exception: Message:[{}] Saga:[{}]";
+    public static final String LOT_UPDATE_COMPENSATE_EXCEPTION_LOG = "Lot Update Saga step: Compensation phase exception: Message:[{}] Saga:[{}]";
 
     public static final String ATTEMPT_TO_RERUN_STALLED_COMPENSATION = "Starting attempt to resolve stalled saga. Rerunning compensate steps. Attempt:[{}] Saga:[{}]";
     public static final String FAILED_ATTEMPT_TO_RERUN_STALLED_COMPENSATION = "Failed attempt to resolve stalled saga. Message:[{}] Saga:[{}]";
@@ -45,7 +48,7 @@ public class LogHelper {
     }
 
 
-    public <T extends SagaStep> void logBidCreateStepException(SagaPhase phase, Saga saga, Throwable ex) {
+    public void logBidCreateStepException(SagaPhase phase, Saga saga, Throwable ex) {
         String msg = switch (phase){
             case EXECUTE -> BID_CREATE_EXECUTION_EXCEPTION_LOG;
             case COMMIT -> BID_CREATE_COMMIT_EXCEPTION_LOG;
@@ -58,7 +61,7 @@ public class LogHelper {
                 .log();
     }
 
-    public <T extends SagaStep> void logPaymentStepException(SagaPhase phase, Saga saga, Throwable ex) {
+    public void logPaymentStepException(SagaPhase phase, Saga saga, Throwable ex) {
         String msg = switch (phase){
             case EXECUTE -> PAYMENT_EXECUTION_EXCEPTION_LOG;
             case COMMIT -> PAYMENT_COMMIT_EXCEPTION_LOG;
@@ -71,6 +74,20 @@ public class LogHelper {
                 .log();
     }
 
+
+    public void logLotUpdateStepException(SagaPhase phase, Saga saga, Throwable ex) {
+
+        String msg = switch (phase){
+            case EXECUTE -> LOT_UPDATE_EXECUTION_EXCEPTION_LOG;
+            case COMMIT -> LOT_UPDATE_COMMIT_EXCEPTION_LOG;
+            case COMPENSATE -> LOT_UPDATE_COMPENSATE_EXCEPTION_LOG;
+        };
+        log.atError()
+                .setMessage(msg)
+                .addArgument(ex.getMessage())
+                .addArgument(saga)
+                .log();
+    }
 
     public void logErrorWhileRearrangingStalledCompensation(Saga saga, Throwable ex) {
         log.atError()
@@ -96,7 +113,7 @@ public class LogHelper {
                 .log();
     }
 
-    public void logManualInterventionMaybeRequired(Saga saga, String exName, String exMessage) {
+    public void logManualInterventionRequired(Saga saga, String exName, String exMessage) {
         log.atError()
                 .setMessage(MANUAL_INTERVENTION_MAYBE_REQUIRED)
                 .addArgument(exName)

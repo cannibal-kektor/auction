@@ -1,7 +1,7 @@
 package kektor.auction.orchestrator.service;
 
 import kektor.auction.orchestrator.dto.LotDto;
-import kektor.auction.orchestrator.dto.NewBidRequestDto;
+import kektor.auction.orchestrator.dto.BidRequestDto;
 import kektor.auction.orchestrator.exception.*;
 import kektor.auction.orchestrator.model.Saga;
 import kektor.auction.orchestrator.service.client.LotServiceClient;
@@ -23,13 +23,13 @@ public class SagaOrchestratorService {
     final SagaManager sagaManager;
 
     @Async
-    public void placeBid(NewBidRequestDto newBidRequestDto, DeferredResult<Long> deferredResult) {
-        Long lotId = newBidRequestDto.lotId();
+    public void placeBid(BidRequestDto bidRequestDto, DeferredResult<Long> deferredResult) {
+        Long lotId = bidRequestDto.lotId();
         LotDto lotDto = lotService.fetchLot(lotId);
-        Instant createdOn = Instant.now();
-        validateNewBid(lotDto, newBidRequestDto, createdOn);
-        validateEnoughFunds(newBidRequestDto);
-        Saga saga = sagaManager.prepareSaga(newBidRequestDto, lotDto, createdOn);
+        Instant creationTime = Instant.now();
+        validateNewBid(lotDto, bidRequestDto, creationTime);
+        validateEnoughFunds(bidRequestDto);
+        Saga saga = sagaManager.prepareSaga(bidRequestDto, lotDto, creationTime);
 //        Long recheckedVersion = lotService.fetchVersion(lotId);
 //        if (!newBidRequestDto.lotVersion().equals(recheckedVersion))
 //            throw new StaleLotVersionException(lotId, recheckedVersion, newBidRequestDto.lotVersion(), saga.getSagaId());
@@ -38,17 +38,16 @@ public class SagaOrchestratorService {
     }
 
 
-    void validateNewBid(LotDto lot, NewBidRequestDto bid, Instant createdOn) {
+    void validateNewBid(LotDto lot, BidRequestDto bid, Instant creationTime) {
         long lotId = lot.id();
         if (!lot.version().equals(bid.lotVersion())) {
             throw new StaleLotVersionException(lotId, lot.version(), bid.lotVersion());
         }
-
-        if (createdOn.isAfter(lot.auctionEnd())) {
-            throw new TooLateBidException(lotId, lot.auctionEnd(), createdOn);
+        if (creationTime.isAfter(lot.auctionEnd())) {
+            throw new TooLateBidException(lotId, lot.auctionEnd(), creationTime);
         }
-        if (createdOn.isBefore(lot.auctionStart())) {
-            throw new TooEarlyBidException(lotId, lot.auctionStart(), createdOn);
+        if (creationTime.isBefore(lot.auctionStart())) {
+            throw new TooEarlyBidException(lotId, lot.auctionStart(), creationTime);
         }
 
         BigDecimal newBidAmount = bid.amount();
@@ -60,9 +59,9 @@ public class SagaOrchestratorService {
 
     }
 
-    void validateEnoughFunds(NewBidRequestDto newBidRequestDto) {
-        Long userId = newBidRequestDto.bidderId();
-        BigDecimal amount = newBidRequestDto.amount();
+    void validateEnoughFunds(BidRequestDto bidRequestDto) {
+        Long userId = bidRequestDto.bidderId();
+        BigDecimal amount = bidRequestDto.amount();
         if (!paymentService.checkEnoughFunds(userId, amount)) {
             throw new NotEnoughAccountFundException(userId, amount);
         }

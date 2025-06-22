@@ -3,8 +3,8 @@ package kektor.auction.bid.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import kektor.auction.bid.dto.BidDto;
-import kektor.auction.bid.dto.NewBidRequestDto;
-import kektor.auction.bid.dto.SagaBidDto;
+import kektor.auction.bid.dto.BidRequestDto;
+import kektor.auction.bid.dto.BidCreateDto;
 import kektor.auction.bid.service.BidService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,9 +38,9 @@ public class BidApi {
     }
 
     @PostMapping("/placeBid")
-    public DeferredResult<ResponseEntity<Void>> placeBid(@RequestBody
-                                                         @Valid NewBidRequestDto newBid) {
-        var deferredResult = new DeferredResult<ResponseEntity<Void>>(30000L);
+    public DeferredResult<ResponseEntity<Object>> placeBid(@RequestBody
+                                                         @Valid BidRequestDto newBid) {
+        var deferredResult = new DeferredResult<ResponseEntity<Object>>(30000L);
         bidService.placeBid(newBid, deferredResult);
         return deferredResult;
     }
@@ -48,8 +48,8 @@ public class BidApi {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/create")
     public Callable<Long> createBid(@RequestBody
-                                    @Valid SagaBidDto sagaBidDto) {
-        return () -> bidService.create(sagaBidDto);
+                                    @Valid BidCreateDto bidCreateDto) {
+        return () -> bidService.create(bidCreateDto);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)

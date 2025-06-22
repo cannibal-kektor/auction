@@ -1,6 +1,6 @@
 package kektor.auction.bid.service.client;
 
-import kektor.auction.bid.dto.NewBidRequestDto;
+import kektor.auction.bid.dto.BidRequestDto;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.HttpExchange;
@@ -12,6 +12,6 @@ import org.springframework.web.service.annotation.PostExchange;
 public interface SagaOrchestratorClient {
 
     @PostExchange("/place-bid")
-    Long placeBid(@RequestBody NewBidRequestDto newBidRequestDto);
+    Long placeBid(@RequestBody BidRequestDto bidRequestDto);
 
 }

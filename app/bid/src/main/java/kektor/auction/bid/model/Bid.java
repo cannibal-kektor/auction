@@ -51,7 +51,7 @@ public class Bid {
 
     @NotNull
     @Column(updatable = false)
-    Instant createdOn;
+    Instant creationTime;
 
     @NotNull
     @Column(length = 20)

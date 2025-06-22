@@ -12,9 +12,9 @@ import java.util.concurrent.ConcurrentMap;
 @Service
 public class PendingConfirmationService {
 
-    ConcurrentMap<Long, DeferredResult<ResponseEntity<Void>>> pendingConfirmations = new ConcurrentHashMap<>();
+    ConcurrentMap<Long, DeferredResult<ResponseEntity<Object>>> pendingConfirmations = new ConcurrentHashMap<>();
 
-    public void addWaitingClient(long sagaId, DeferredResult<ResponseEntity<Void>> deferredResult) {
+    public void addWaitingClient(long sagaId, DeferredResult<ResponseEntity<Object>> deferredResult) {
         pendingConfirmations.put(sagaId, deferredResult);
         deferredResult.onTimeout(() -> {
             pendingConfirmations.remove(sagaId);
@@ -27,10 +27,16 @@ public class PendingConfirmationService {
     public void notifyWaitingClient(SagaStatusMessage msg) {
         var pendingResult = pendingConfirmations.remove(msg.sagaId());
         if (pendingResult != null) {
-            ResponseEntity<Void> response = switch (msg.sagaStatus()) {
-                case FINISHED -> ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-                case CONCURRENT_REJECT -> ResponseEntity.status(HttpStatus.CONFLICT).build();
-                default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            ResponseEntity<Object> response = switch (msg.status()) {
+                case COMPLETED -> ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+                case COMPENSATED, STALLED -> {
+                    var problemDetail = msg.problemDetail();
+                    if (problemDetail != null) {
+                        yield ResponseEntity.status(problemDetail.getStatus()).body(problemDetail);
+                    }
+                    yield ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                }
+                default -> throw new IllegalStateException("Unexpected value: " + msg.status());
             };
             pendingResult.setResult(response);
         }

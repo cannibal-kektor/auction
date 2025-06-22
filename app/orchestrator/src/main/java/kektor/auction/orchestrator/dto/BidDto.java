@@ -14,7 +14,7 @@ public record BidDto(
 
         BigDecimal amount,
 
-        Instant createdOn,
+        Instant creationTime,
 
         BidStatus status
 

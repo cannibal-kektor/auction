@@ -22,7 +22,6 @@ public class WebClientConfig {
         RestClient restClient = RestClient.builder()
                 .baseUrl("http://localhost:8082")
                 .requestFactory(timeLimitedRequestFactory())
-//                .defaultStatusHandler()
                 .build();
         return createProxy(restClient, BidServiceClient.class);
     }

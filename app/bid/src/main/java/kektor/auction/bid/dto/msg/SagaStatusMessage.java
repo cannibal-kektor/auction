@@ -1,5 +1,7 @@
 package kektor.auction.bid.dto.msg;
 
 
-public record SagaStatusMessage(Long sagaId, SagaStatus sagaStatus) {
+import org.springframework.http.ProblemDetail;
+
+public record SagaStatusMessage(Long sagaId, SagaStatus status, ProblemDetail problemDetail) {
 }
