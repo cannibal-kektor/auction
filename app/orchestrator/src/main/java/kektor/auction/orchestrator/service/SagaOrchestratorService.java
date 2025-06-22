@@ -18,6 +18,8 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class SagaOrchestratorService {
 
+    static final BigDecimal  MIN_STEP = new BigDecimal("10.0");
+
     final LotServiceClient lotService;
     final PaymentServiceClient paymentService;
     final SagaManager sagaManager;
@@ -50,11 +52,13 @@ public class SagaOrchestratorService {
             throw new TooEarlyBidException(lotId, lot.auctionStart(), creationTime);
         }
 
-        BigDecimal newBidAmount = bid.amount();
-        if (newBidAmount.compareTo(lot.initialPrice()) <= 0
-                || newBidAmount.compareTo(lot.highestBid()) <= 0) {
+        var newBidAmount = bid.amount();
+        var initialPrice = lot.initialPrice();
+        var highestBid = lot.highestBid();
+        if (newBidAmount.subtract(initialPrice).compareTo(MIN_STEP) < 0
+                || newBidAmount.subtract(highestBid).compareTo(MIN_STEP) < 0) {
             throw new TooLowBidAmountException(lot.id(),
-                    lot.initialPrice().max(lot.highestBid()), newBidAmount);
+                    initialPrice.max(highestBid).add(MIN_STEP), newBidAmount);
         }
 
     }
