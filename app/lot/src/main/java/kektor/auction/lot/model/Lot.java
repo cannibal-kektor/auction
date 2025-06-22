@@ -41,11 +41,18 @@ public class Lot {
     )
     Long id;
 
-    //TODO AuctionStart and logic
-
     @NotNull
     @Version
     Long version;
+
+    public enum Status {
+        PENDING, ACTIVE, COMPLETED, CANCELLED
+    }
+
+    @NotNull
+    @Column(length = 20)
+    @Enumerated(EnumType.STRING)
+    Status status = Status.PENDING;
 
     @NotBlank
     @Size(min = 2, max = 255)

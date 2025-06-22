@@ -1,9 +1,10 @@
 package kektor.auction.sse.dto;
 
+
 import java.time.Instant;
 
-public record LotCategoriesUpdateMessage(
+public record LotStatusUpdateMessage(
         Instant timestamp,
         Long lotId,
-        CategoryEventMessage source) implements LotUpdateMessage {
+        LotStatus status) implements LotUpdateMessage {
 }

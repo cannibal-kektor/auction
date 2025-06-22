@@ -11,6 +11,8 @@ public record LotDto(
 
         String name,
 
+        LotStatus status,
+
         Long sellerId,
 
         BigDecimal initialPrice,

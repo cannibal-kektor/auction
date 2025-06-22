@@ -1,14 +1,13 @@
 package kektor.auction.lot.repository;
 
-import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import kektor.auction.lot.model.Lot;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Repository
@@ -27,5 +26,10 @@ public interface LotRepository extends CustomOperation, JpaRepository<Lot, Long>
 
     @Query(value = "select version from Lot where id=:id")
     Long fetchLotVersion(@Param("id") Long lotId);
+
+    List<Lot> findTop10RipeLotsByStatusAndAuctionStartAfter(Lot.Status status, Instant auctionStartAfter);
+
+    List<Lot> findTop10RipeLotsByStatusAndAuctionEndBefore(Lot.Status status, Instant auctionEndBefore);
+
 
 }

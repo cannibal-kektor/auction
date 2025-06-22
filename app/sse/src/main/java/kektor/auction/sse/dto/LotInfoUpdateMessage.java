@@ -1,7 +1,12 @@
 package kektor.auction.sse.dto;
 
 
-public record LotInfoUpdateMessage(LotDto lot) implements LotUpdateMessage {
+import java.time.Instant;
+
+public record LotInfoUpdateMessage(
+        Instant timestamp,
+        LotDto lot) implements LotUpdateMessage {
+
     @Override
     public Long lotId() {
         return lot.id();

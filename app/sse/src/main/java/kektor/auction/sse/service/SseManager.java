@@ -1,7 +1,6 @@
 package kektor.auction.sse.service;
 
 import kektor.auction.sse.dto.LotUpdateMessage;
-import kektor.auction.sse.exception.StreamIOException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;

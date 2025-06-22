@@ -2,10 +2,7 @@ package kektor.auction.lot.service;
 
 import jakarta.persistence.OptimisticLockException;
 import kektor.auction.lot.dto.*;
-import kektor.auction.lot.dto.msg.LotBidInfoUpdateMessage;
-import kektor.auction.lot.dto.msg.LotCategoriesUpdateMessage;
-import kektor.auction.lot.dto.msg.CategoryEventMessage;
-import kektor.auction.lot.dto.msg.LotInfoUpdateMessage;
+import kektor.auction.lot.dto.msg.*;
 import kektor.auction.lot.mapper.LotMapper;
 import kektor.auction.lot.model.Lot;
 import kektor.auction.lot.model.LotStat;
@@ -14,11 +11,16 @@ import kektor.auction.lot.exception.AuctionAlreadyStartedException;
 import kektor.auction.lot.exception.StaleLotVersionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
+
+import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 @Service
 @Transactional(readOnly = true, timeout = 10000000)
@@ -46,7 +48,6 @@ public class LotService {
         Lot lot = mapper.toModel(createDTO);
         lot = lotRepository.saveNew(lot);
         var categories = categoryService.getCategories(lot.getCategoriesId());
-        //Делает отдельный инсерт на каждую категорию(смотри апдейт)
         return mapper.toDto(lot, categories);
     }
     //TODO AOP Check exceptions in @Transactional?
@@ -64,7 +65,7 @@ public class LotService {
         }
         var categories = categoryService.getCategories(lot.getCategoriesId());
         LotDto lotDto = mapper.toDto(lot, categories);
-        eventPublisher.publishEvent(new LotInfoUpdateMessage(lotDto));
+        eventPublisher.publishEvent(new LotInfoUpdateMessage(now(), lotDto));
         return lotDto;
     }
 
@@ -89,8 +90,31 @@ public class LotService {
             throw new StaleLotVersionException(lot.getId(), currentV, lot.getVersion());
         }
 
-        eventPublisher.publishEvent(new LotBidInfoUpdateMessage(id, currentV,
+        eventPublisher.publishEvent(new LotBidInfoUpdateMessage(now(), id, currentV,
                 highestBid, winningBidId, isRollback));
+    }
+
+
+    @Transactional
+    @Scheduled(fixedDelay = 5000)
+    public void activateRipeLots() {
+        Instant now = now();
+        List<Lot> lots = lotRepository.findTop10RipeLotsByStatusAndAuctionStartAfter(Lot.Status.PENDING, now);
+        lots.forEach(lot -> lot.setStatus(Lot.Status.ACTIVE));
+        lotRepository.flush();
+        lots.forEach(lot -> eventPublisher.publishEvent(
+                new LotStatusUpdateMessage(now(), lot.getId(), lot.getStatus())));
+    }
+
+    @Transactional
+    @Scheduled(fixedDelay = 5000)
+    public void completeFinishedLots() {
+        Instant nowWithSmallDelay = now().plus(5, SECONDS);
+        List<Lot> lots = lotRepository.findTop10RipeLotsByStatusAndAuctionEndBefore(Lot.Status.PENDING, nowWithSmallDelay);
+        lots.forEach(lot -> lot.setStatus(Lot.Status.COMPLETED));
+        lotRepository.flush();
+        lots.forEach(lot -> eventPublisher.publishEvent(
+                new LotStatusUpdateMessage(now(), lot.getId(), lot.getStatus())));
     }
 
 
@@ -102,7 +126,7 @@ public class LotService {
         if (!currentV.equals(updV)) {
             throw new StaleLotVersionException(lotId, currentV, updV);
         }
-        if (auctionStart.isBefore(Instant.now())) {
+        if (auctionStart.isBefore(now())) {
             throw new AuctionAlreadyStartedException(lotId, auctionStart);
         }
     }
@@ -110,7 +134,7 @@ public class LotService {
     public void notifyLotUpdateSubscribers(Long categoryId, CategoryEventMessage message) {
         lotRepository.findLotsIdsByCategory(categoryId)
                 .stream()
-                .map(lotId -> new LotCategoriesUpdateMessage(message, lotId))
+                .map(lotId -> new LotCategoriesUpdateMessage(now(), lotId, message))
                 .forEach(eventPublisher::publishEvent);
     }
 }

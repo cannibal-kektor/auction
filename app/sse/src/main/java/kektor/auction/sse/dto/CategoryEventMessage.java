@@ -1,6 +1,5 @@
-package kektor.auction.lot.dto.msg;
+package kektor.auction.sse.dto;
 
-import kektor.auction.lot.dto.CategoryDto;
 
 public record CategoryEventMessage(EventType eventType, CategoryDto categoryDto) {
 
