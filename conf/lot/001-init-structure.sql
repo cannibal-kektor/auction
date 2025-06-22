@@ -1,35 +1,70 @@
 BEGIN;
 
-create sequence if not exists id_sequence_generator start with 1000 increment by 100;
+CREATE SEQUENCE IF NOT EXISTS id_sequence_generator
+    START WITH 1000
+    INCREMENT BY 100
+    CACHE 1;
 
-create table if not exists lot
+CREATE TABLE IF NOT EXISTS lot
 (
-    highest_bid   numeric(38, 2)              not null,
-    initial_price numeric(38, 2)              not null,
-    auction_end   timestamp(6) with time zone not null,
-    auction_start timestamp(6) with time zone not null,
-    bids_count    bigint                      not null,
-    id            bigint                      not null,
-    seller_id     bigint                      not null,
-    version       bigint                      not null,
-    description   varchar(4000)               not null,
-    name          varchar(255)                not null,
-    primary key (id),
-    check (auction_start < auction_end)
+    id             BIGINT PRIMARY KEY NOT NULL,
+    version        BIGINT             NOT NULL,
+    name           VARCHAR(255)       NOT NULL,
+    status         VARCHAR(20)        NOT NULL,
+    description    VARCHAR(4000)      NOT NULL,
+    seller_id      BIGINT             NOT NULL,
+    initial_price  NUMERIC(38, 2)     NOT NULL CHECK (initial_price > 0),
+    auction_end    TIMESTAMPTZ        NOT NULL,
+    auction_start  TIMESTAMPTZ        NOT NULL,
+    highest_bid    NUMERIC(38, 2)     NOT NULL DEFAULT 0,
+    bids_count     BIGINT             NOT NULL DEFAULT 0,
+    winning_bid_id BIGINT             NOT NULL DEFAULT 0,
+
+    CONSTRAINT valid_status CHECK (status IN ('PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED')),
+    CONSTRAINT auction_time_check CHECK (auction_start < auction_end),
+    CONSTRAINT name_length_check CHECK (LENGTH(name) >= 2),
+    CONSTRAINT description_length_check CHECK (LENGTH(description) >= 10),
+    CONSTRAINT auction_lot_duration_check CHECK (auction_end - auction_start > INTERVAL '1 hour')
 );
 
-create table if not exists lot_categories
+CREATE TABLE IF NOT EXISTS lot_categories
 (
-    categories_id bigint,
-    lot_id        bigint not null
+    category_id BIGINT NOT NULL CHECK (category_id > 0),
+    lot_id      BIGINT NOT NULL,
+    PRIMARY KEY (lot_id, category_id)
 );
 
-alter table if exists lot_categories
-    add constraint lot_categories_foreign_key
-        foreign key (lot_id)
-            references lot;
+ALTER TABLE IF EXISTS lot_categories
+    ADD CONSTRAINT lot_categories_foreign_key
+        FOREIGN KEY (lot_id) REFERENCES lot
+            ON DELETE CASCADE;
 
-create index if not exists idx_lot_categories ON lot_categories (categories_id);
+
+CREATE INDEX IF NOT EXISTS idx_lot_category ON lot_categories (category_id);
+CREATE INDEX IF NOT EXISTS idx_lot_seller ON lot (seller_id);
+CREATE INDEX IF NOT EXISTS idx_lots_status_start ON lot (status, auction_start);
+CREATE INDEX IF NOT EXISTS idx_lots_status_end ON lot (status, auction_end);
+
+DROP TRIGGER IF EXISTS lot_auction_time_trigger ON lot;
+
+CREATE OR REPLACE FUNCTION validate_auction_time()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.auction_start < NOW() OR NEW.auction_end < NOW() THEN
+        RAISE EXCEPTION 'Auction times must be in the future';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER lot_auction_time_trigger
+    BEFORE INSERT OR UPDATE
+    ON lot
+    FOR EACH ROW
+EXECUTE FUNCTION validate_auction_time();
+
+COMMIT;
 
 --TODO Forbid updating auctionEnd/auctionStart
 -- create or replace function forbid_updating_finished_lots()
@@ -49,14 +84,3 @@ create index if not exists idx_lot_categories ON lot_categories (categories_id);
 --     for each row
 -- execute function forbid_updating_finished_lots();
 
-alter table lot
-    drop constraint if exists auction_lot_duration_check;
-alter table lot
-    add constraint auction_lot_duration_check
-        check (
---                 (current_timestamp < auction_start and lot.auction_start < auction_end) and
---                 EXTRACT(EPOCH FROM (auction_end - auction_start)) > 3600
-            auction_end - auction_start > interval '1 hour'
-            );
-
-COMMIT;
