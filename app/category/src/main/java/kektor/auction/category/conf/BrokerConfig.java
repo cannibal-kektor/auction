@@ -9,7 +9,7 @@ import org.springframework.kafka.config.TopicBuilder;
 @Configuration
 public class BrokerConfig {
 
-    @Value("${app.kafka.category.event-topic}")
+    @Value("${app.kafka.category.update-event-topic}")
     String categoryEventTopic;
 
     @Bean

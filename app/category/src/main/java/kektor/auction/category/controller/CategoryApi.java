@@ -44,7 +44,7 @@ public class CategoryApi {
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{id}")
+    @DeleteMapping(value = "/{id}", consumes = {MediaType.ALL_VALUE})
     public Callable<Void> delete(@PathVariable("id") @Positive Long categoryId) {
         return () -> {
             categoryService.delete(categoryId);

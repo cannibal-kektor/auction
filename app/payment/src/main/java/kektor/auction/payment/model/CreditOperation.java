@@ -10,9 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "credit_operations",
-        uniqueConstraints = @UniqueConstraint(name = "uk_saga_id", columnNames = {"saga_id"}))
-@PrimaryKeyJoinColumn(name = "operation_id")
 @DiscriminatorValue("CREDIT")
 public class CreditOperation extends BalanceOperation {
 

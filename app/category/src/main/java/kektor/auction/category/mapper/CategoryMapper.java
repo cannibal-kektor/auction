@@ -17,7 +17,7 @@ public interface CategoryMapper {
     Category toModel(CategoryDto categoryDTO);
 
     @Mapping(target = "id", ignore = true)
-    @InheritConfiguration
+    @Mapping(target = "parent", ignore = true)
     Category update(CategoryDto categoryDTO, @MappingTarget Category category);
 
     @Mapping(source = "parentId", target = "id")

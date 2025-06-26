@@ -2,7 +2,6 @@ package kektor.auction.payment.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Past;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -14,8 +13,9 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "balance_operations")
-@Inheritance(strategy = InheritanceType.JOINED)
+@Table(name = "balance_operations",
+        uniqueConstraints = @UniqueConstraint(name = "uk_saga_id", columnNames = {"saga_id"}))
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "operation_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class BalanceOperation extends IdEntity {
 
