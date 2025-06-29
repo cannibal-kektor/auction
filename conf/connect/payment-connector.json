@@ -22,7 +22,7 @@
   "transforms.key.field": "id",
   "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
   "transforms.route.regex": "auction\\.public\\.(.*)",
-  "transforms.route.replacement": "auction.$1",
+  "transforms.route.replacement": "auction.cdc.$1",
   "topic.creation.default.replication.factor": 1,
   "topic.creation.default.partitions": 5,
   "topic.creation.default.cleanup.policy": "compact,delete",
