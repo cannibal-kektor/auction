@@ -22,6 +22,10 @@ public record BidRequestDto(
 
         @NotNull
         @Positive
+        Long paymentAccountId,
+
+        @NotNull
+        @Positive
         BigDecimal amount
 ) {
 

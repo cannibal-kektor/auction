@@ -21,6 +21,9 @@ public record LotCDC(
         @JsonProperty("seller_id")
         Long sellerId,
 
+        @JsonProperty("seller_payment_account_id")
+        Long sellerPaymentAccountId,
+
         @JsonProperty("initial_price")
         BigDecimal initialPrice,
 
@@ -35,6 +38,9 @@ public record LotCDC(
 
         @JsonProperty("winning_bid_id")
         Long winningBidId,
+
+        @JsonProperty("winner_id")
+        Long winnerId,
 
         @JsonProperty("bids_count")
         Long bidsCount

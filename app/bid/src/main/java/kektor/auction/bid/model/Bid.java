@@ -25,7 +25,7 @@ public class Bid {
     @SequenceGenerator(name = ID_GENERATOR,
             sequenceName = ID_GENERATOR_SEQUENCE_NAME,
             allocationSize = 100,
-            initialValue = 1000
+            initialValue = 5000
     )
     Long id;
 
@@ -38,6 +38,11 @@ public class Bid {
     @Positive
     @Column(updatable = false)
     Long bidderId;
+
+    @NotNull
+    @Positive
+    @Column(updatable = false)
+    Long paymentAccountId;
 
     @NotNull
     @Positive

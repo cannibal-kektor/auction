@@ -31,8 +31,8 @@ public class BrokerService {
     @DltHandler
     public void handleDlt(@Payload(required = false) SagaStatusMessage msg,
 //                          ConsumerRecord<String, SagaStatusMessage> record,
-                          @Header(KafkaHeaders.EXCEPTION_FQCN) String exceptionName,
-                          @Header(KafkaHeaders.EXCEPTION_MESSAGE) String exceptionMessage) {
+                          @Header(KafkaHeaders.DLT_EXCEPTION_FQCN) String exceptionName,
+                          @Header(KafkaHeaders.DLT_EXCEPTION_MESSAGE) String exceptionMessage) {
 
         log.error("DLT record received [SagaStatusMessage] : exName={}, exMessage={}, value={}"
                 , exceptionName, exceptionMessage, msg);

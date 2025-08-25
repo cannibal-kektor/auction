@@ -4,6 +4,7 @@ app:
   kafka:
       cdc:
         topic-pattern: auction.cdc.*
+        dlt-topic: auction.sink.cdc-dlt
 #      lot: auction.lot
 #      lot-categories: auction.lot_categories
 #      category: auction.category
@@ -55,7 +56,7 @@ spring:
       key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       auto-offset-reset: latest
-      max-poll-records: 50
+      max-poll-records: 100
       isolation-level: read_committed
       properties:
         max.poll.interval.ms: 300000  # default
@@ -72,7 +73,7 @@ spring:
           payment_accounts:kektor.auction.query.dto.msg.PaymentAccountCDC
           balance_operations:kektor.auction.query.dto.msg.BalanceOperationCDC
     producer:
-      client-id: ${HOSTNAME}-lot-update-events-producer
+      client-id: ${HOSTNAME}-cdc-dlt-producer
       acks: all
       batch-size: 16KB
       buffer-memory: 16MB
@@ -85,11 +86,6 @@ spring:
         delivery.timeout.ms: 30000
         request.timeout.ms: 10000
         max.block.ms: 5000
-        spring.json.type.mapping: >-
-          lotBidUpdate:kektor.auction.lot.dto.msg.LotBidInfoUpdateMessage,
-          lotCategoriesUpdate:kektor.auction.lot.dto.msg.LotCategoriesUpdateMessage,
-          lotInfoUpdate:kektor.auction.lot.dto.msg.LotInfoUpdateMessage
-
 
   elasticsearch:
     #    uris: https://192.168.100.11:9200

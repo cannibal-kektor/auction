@@ -6,8 +6,11 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SourceType;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -30,6 +33,10 @@ public class PaymentAccount extends IdEntity {
     @NotNull
     @Column(updatable = false)
     Long userId;
+
+    @CreationTimestamp(source = SourceType.DB)
+    @Column(nullable = false, updatable = false)
+    Instant registrationDate;
 
     @OneToMany(
             mappedBy = "paymentAccount",

@@ -10,6 +10,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.Setting;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Builder
 @TypeAlias("paymentAccount")
@@ -27,6 +28,8 @@ public record PaymentAccount(
 
         Long version,
 
-        Long userId
+        Long userId,
+
+        Instant registrationDate
 ) {
 }

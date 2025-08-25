@@ -15,6 +15,8 @@ public record LotDto(
 
         Long sellerId,
 
+        Long sellerPaymentAccountId,
+
         BigDecimal initialPrice,
 
         Instant auctionStart,
@@ -22,6 +24,8 @@ public record LotDto(
         Instant auctionEnd,
 
         BigDecimal highestBid,
+
+        Long winnerId,
 
         Long winningBidId,
 

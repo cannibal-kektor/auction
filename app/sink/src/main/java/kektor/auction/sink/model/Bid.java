@@ -27,6 +27,8 @@ public record Bid(
 
         Long bidderId,
 
+        Long paymentAccountId,
+
         Long sagaId,
 
         @Field(type = FieldType.Scaled_Float, scalingFactor = 10000)

@@ -11,6 +11,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface PublishEvent {
 
-    CategoryEventMessage.EVENT_TYPE value();
+    CategoryEventMessage.EventType value();
 
 }

@@ -1,7 +1,9 @@
 package kektor.auction.lot.conf;
 
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.Serializer;
@@ -22,6 +24,7 @@ import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import static java.util.Map.entry;
 
@@ -71,9 +74,9 @@ public class BrokerConfig {
 
     @Bean
     DeadLetterPublishingRecoverer defaultRecoverer(KafkaTemplate<?, ?> kafkaTemplate) {
-//        BiFunction<ConsumerRecord<?, ?>, Exception, TopicPartition> destinationResolver=
-//        ew DeadLetterPublishingRecoverer(kafkaTemplate, destinationResolver)
-        return new DeadLetterPublishingRecoverer(kafkaTemplate);
+        BiFunction<ConsumerRecord<?, ?>, Exception, TopicPartition> destinationResolver=
+                (cr, e) -> new TopicPartition(cr.topic() + "-dlt", -1);
+        return new DeadLetterPublishingRecoverer(kafkaTemplate, destinationResolver);
     }
 
     public static class CustomDelegatingByTypeSerializer extends DelegatingByTypeSerializer {

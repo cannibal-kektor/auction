@@ -15,6 +15,9 @@ public record BidCDC(
         @JsonProperty("bidder_id")
         Long bidderId,
 
+        @JsonProperty("payment_account_id")
+        Long paymentAccountId,
+
         @JsonProperty("saga_id")
         Long sagaId,
 

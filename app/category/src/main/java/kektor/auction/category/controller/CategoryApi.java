@@ -61,4 +61,11 @@ public class CategoryApi {
     public Callable<List<CategoryDto>> getBulk(@PathVariable("ids") List<Long> categoryIds) {
         return () -> categoryService.getBulk(categoryIds);
     }
+
+    @GetMapping("/hierarchy/{id}")
+    public Callable<List<Long>> getCategoryHierarchyIds(@PathVariable("id") @Positive Long categoryId) {
+        return () -> categoryService.getHierarchy(categoryId);
+    }
+
+
 }

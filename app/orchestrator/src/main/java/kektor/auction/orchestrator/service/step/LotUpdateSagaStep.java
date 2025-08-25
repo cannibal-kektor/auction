@@ -46,7 +46,7 @@ public class LotUpdateSagaStep implements SagaStep {
         BidDto bid = bidService.fetchBid(sagaId)
                 .orElseThrow();
         lotService.updateBidInfo(bid.lotId(), saga.getLotVersion(),
-                bid.amount(), bid.id(), false);
+                bid.amount(), bid.id(), bid.bidderId(), false);
     }
 
     @Override
@@ -56,14 +56,15 @@ public class LotUpdateSagaStep implements SagaStep {
         Optional<BidDto> bidOpt = bidService.fetchBid(sagaId);
 
         if (bidOpt.isPresent()) {
-            var bid = bidOpt.get();
+            BidDto bid = bidOpt.get();
             LotDto lot = lotService.fetchLot(lotId);
             if (lot.winningBidId().equals(saga.getCompensateWinningBidId()))
                 return;
 
             if (lot.winningBidId().equals(bid.id()))
                 lotService.updateBidInfo(lotId, lot.version(),
-                        saga.getCompensateBidAmount(), saga.getCompensateWinningBidId(), true);
+                        saga.getCompensateBidAmount(), saga.getCompensateWinningBidId(),
+                        saga.getCompensateWinnerId(), true);
         }
 
     }

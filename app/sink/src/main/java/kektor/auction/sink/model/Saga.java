@@ -32,6 +32,8 @@ public record Saga(
 
         Long bidderId,
 
+        Long paymentAccountId,
+
         @Field(type = FieldType.Scaled_Float, scalingFactor = 10000)
         BigDecimal newBidAmount,
 
@@ -39,6 +41,8 @@ public record Saga(
         BigDecimal compensateBidAmount,
 
         Long compensateWinningBidId,
+
+        Long compensateWinnerId,
 
         @Field(type = FieldType.Text, analyzer = "ru_eng")
         String problemDetail

@@ -29,6 +29,10 @@ public record LotCreateDto(
         Long sellerId,
 
         @NotNull
+        @Positive
+        Long sellerPaymentAccountId,
+
+        @NotNull
         @DecimalMin(value = "0")
         BigDecimal initialPrice,
 

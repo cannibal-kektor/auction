@@ -9,6 +9,7 @@ public record LotBidInfoUpdateMessage(
         Long lotId,
         Long version,
         BigDecimal highestBid,
+        Long winnerId,
         Long winningBidId,
         boolean isRollback) implements LotUpdateMessage {
 }

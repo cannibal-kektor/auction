@@ -71,7 +71,7 @@ public class LotService {
 
     @Transactional
     public void updateHighestBid(Long id, Long version, BigDecimal highestBid,
-                                 Long winningBidId, boolean isRollback) {
+                                 Long winningBidId, Long winnerId, boolean isRollback) {
         Lot lot = lotRepository.findExceptionally(id);
         Long currentV = lot.getVersion();
         if (!currentV.equals(version)) {
@@ -80,6 +80,7 @@ public class LotService {
         LotStat lotStat = lot.getLotStat();
         lotStat.setHighestBid(highestBid);
         lotStat.setWinningBidId(winningBidId);
+        lotStat.setWinnerId(winnerId);
         Long currentBidsCount = lotStat.getBidsCount();
         lotStat.setBidsCount(isRollback ? currentBidsCount - 1 : currentBidsCount + 1);
 
@@ -91,7 +92,7 @@ public class LotService {
         }
 
         eventPublisher.publishEvent(new LotBidInfoUpdateMessage(now(), id, currentV,
-                highestBid, winningBidId, isRollback));
+                highestBid, winningBidId, winnerId, isRollback));
     }
 
 

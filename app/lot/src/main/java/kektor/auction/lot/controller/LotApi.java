@@ -54,9 +54,10 @@ public class LotApi {
                                            @RequestParam("version") @Positive Long version,
                                            @RequestParam("highestBid") @Positive BigDecimal highestBid,
                                            @RequestParam("winningBidId") Long winningBidId,
+                                           @RequestParam("winnerId") Long winnerId,
                                            @RequestParam("isRollback") boolean isRollback) {
         return () -> {
-            lotService.updateHighestBid(id, version, highestBid, winningBidId, isRollback);
+            lotService.updateHighestBid(id, version, highestBid, winningBidId, winnerId, isRollback);
             return null;
         };
     }

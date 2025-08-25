@@ -36,6 +36,8 @@ public record Lot(
 
         Long sellerId,
 
+        Long sellerPaymentAccountId,
+
         @Field(type = FieldType.Scaled_Float, scalingFactor = 10000)
         BigDecimal initialPrice,
 
@@ -47,6 +49,8 @@ public record Lot(
         BigDecimal highestBid,
 
         Long winningBidId,
+
+        Long winnerId,
 
         Long bidsCount,
 

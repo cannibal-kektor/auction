@@ -1,5 +1,6 @@
 package kektor.auction.category.service;
 
+import jakarta.validation.constraints.Positive;
 import kektor.auction.category.aspect.PublishEvent;
 import kektor.auction.category.dto.CategoryDto;
 import kektor.auction.category.dto.CategoryEventMessage;
@@ -28,14 +29,14 @@ public class CategoryService {
                 .orElseThrow(() -> new CategoryNotFoundException(categoryId));
     }
 
-    @PublishEvent(CategoryEventMessage.EVENT_TYPE.CREATED)
+    @PublishEvent(CategoryEventMessage.EventType.CREATED)
     @Transactional
     public CategoryDto create(CategoryDto createDTO) {
         var category = categoryRepository.save(mapper.toModel(createDTO));
         return mapper.toDto(category);
     }
 
-    @PublishEvent(CategoryEventMessage.EVENT_TYPE.UPDATED)
+    @PublishEvent(CategoryEventMessage.EventType.UPDATED)
     @Transactional
     public CategoryDto update(Long categoryId, CategoryDto updateDTO) {
         return categoryRepository.findById(categoryId)
@@ -46,7 +47,7 @@ public class CategoryService {
                 .orElseThrow(() -> new CategoryNotFoundException(categoryId));
     }
 
-    @PublishEvent(CategoryEventMessage.EVENT_TYPE.DELETED)
+    @PublishEvent(CategoryEventMessage.EventType.DELETED)
     @Transactional
     public void delete(Long id) {
         int deletedCount = categoryRepository.deleteByIdIfNoChildren(id);
@@ -63,6 +64,10 @@ public class CategoryService {
         return mapper.toDto(allById);
     }
 
+
+    public List<Long> getHierarchy( Long categoryId) {
+        return categoryRepository.findCategoryHierarchyIds(categoryId);
+    }
 
     public List<CategoryDto> getAll() {
         var all = categoryRepository.findAll();

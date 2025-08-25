@@ -17,8 +17,10 @@ public interface SagaMapper {
 
     @Mapping(source = "bid.amount", target = "newBidAmount")
     @Mapping(source = "bid.bidderId", target = "bidderId")
+    @Mapping(source = "bid.paymentAccountId", target = "paymentAccountId")
     @Mapping(source = "lot.highestBid", target = "compensateBidAmount")
     @Mapping(source = "lot.winningBidId", target = "compensateWinningBidId")
+    @Mapping(source = "lot.winnerId", target = "compensateWinnerId")
     @Mapping(source = "lot.id", target = "lotId")
     @Mapping(source = "lot.version", target = "lotVersion")
     @Mapping(source = "creationTime", target = "creationTime")

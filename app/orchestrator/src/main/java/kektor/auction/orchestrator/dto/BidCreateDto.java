@@ -9,6 +9,8 @@ public record BidCreateDto(
 
         Long bidderId,
 
+        Long paymentAccountId,
+
         Long sagaId,
 
         BigDecimal amount,

@@ -18,6 +18,8 @@ public record LotDto(
 
         Long sellerId,
 
+        Long sellerPaymentAccountId,
+
         BigDecimal initialPrice,
 
         Instant auctionStart,
@@ -27,6 +29,8 @@ public record LotDto(
         Set<CategoryDto> categories,
 
         BigDecimal highestBid,
+
+        Long winnerId,
 
         Long winningBidId,
 

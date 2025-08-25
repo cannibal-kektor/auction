@@ -4,6 +4,7 @@ package kektor.auction.sink.dto.msg;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 public record PaymentAccountCDC(
 
@@ -14,6 +15,9 @@ public record PaymentAccountCDC(
         Long version,
 
         @JsonProperty("user_id")
-        Long userId
+        Long userId,
+
+        @JsonProperty("registration_date")
+        Instant registrationDate
 ) {
 }

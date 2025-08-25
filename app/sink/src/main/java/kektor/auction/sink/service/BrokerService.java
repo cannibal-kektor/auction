@@ -4,21 +4,16 @@ package kektor.auction.sink.service;
 import kektor.auction.sink.dto.msg.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@RetryableTopic(attempts = "4", concurrency = "4",
-        backoff = @Backoff(delay = 1000, multiplier = 2, maxDelay = 4000))
 @KafkaListener(topicPattern = "${app.kafka.cdc.topic-pattern}",
         groupId = "${spring.application.name}",
         clientIdPrefix = "${HOSTNAME}-${spring.application.name}-consumer",
@@ -76,15 +71,15 @@ public class BrokerService {
         dataSynchronizationService.syncData(opType, sagaId, msg);
     }
 
-    @DltHandler
-    public void handleDlt(@Payload(required = false) Object msg,
-//                          ConsumerRecord<String, SagaStatusMessage> record,
-                          @Header(KafkaHeaders.EXCEPTION_FQCN) String exceptionName,
-                          @Header(KafkaHeaders.EXCEPTION_MESSAGE) String exceptionMessage) {
 
-        log.error("DLT record received [SagaStatusMessage] : exName={}, exMessage={}, value={}"
-                , exceptionName, exceptionMessage, msg);
-
+    @KafkaListener(topics = "${app.kafka.cdc.dlt-topic}", groupId = "${spring.application.name}-dlt")
+    public void handleDlt(@Payload(required = false) Object message,
+                          @Header(KafkaHeaders.DLT_ORIGINAL_TOPIC) String originalTopic,
+                          @Header(KafkaHeaders.DLT_EXCEPTION_FQCN) String exceptionFqcn,
+                          @Header(KafkaHeaders.DLT_EXCEPTION_MESSAGE) String exceptionMessage,
+                          @Header(KafkaHeaders.DLT_EXCEPTION_STACKTRACE) String stacktrace) {
+        log.error("Received message in DLT: originalTopic={}, exception={}, exception message={}, dlt message={}",
+                originalTopic, exceptionFqcn, exceptionMessage, message);
     }
 
 }

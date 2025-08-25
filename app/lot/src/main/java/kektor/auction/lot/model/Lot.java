@@ -67,6 +67,10 @@ public class Lot {
     Long sellerId;
 
     @NotNull
+    @Column(updatable = false)
+    Long sellerPaymentAccountId;
+
+    @NotNull
     @DecimalMin(value = "0", inclusive = false)
     BigDecimal initialPrice;
 

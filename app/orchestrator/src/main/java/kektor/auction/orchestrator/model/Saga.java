@@ -40,9 +40,7 @@ public class Saga {
     @Column(updatable = false)
     Long lotId;
 
-    @NotNull
-    @PositiveOrZero
-    @Column(updatable = false)
+    @Transient
     Long lotVersion;
 
     @NotNull
@@ -57,12 +55,22 @@ public class Saga {
     @NotNull
     @Positive
     @Column(updatable = false)
+    Long paymentAccountId;
+
+    @NotNull
+    @Positive
+    @Column(updatable = false)
     BigDecimal newBidAmount;
 
     @NotNull
     @Positive
     @Column(updatable = false)
     BigDecimal compensateBidAmount;
+
+    @NotNull
+    @Positive
+    @Column(updatable = false)
+    Long compensateWinnerId;
 
     @NotNull
     @Positive

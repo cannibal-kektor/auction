@@ -29,6 +29,7 @@
         <module>query</module>
         <module>orchestrator</module>
         <module>sse</module>
+        <module>sink</module>
     </modules>
 
     <properties>

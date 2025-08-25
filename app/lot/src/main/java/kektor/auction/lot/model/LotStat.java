@@ -17,6 +17,9 @@ public class LotStat {
     BigDecimal highestBid = BigDecimal.ZERO;
 
     @NotNull
+    Long winnerId = 0L;
+
+    @NotNull
     Long winningBidId = 0L;
 
     @NotNull

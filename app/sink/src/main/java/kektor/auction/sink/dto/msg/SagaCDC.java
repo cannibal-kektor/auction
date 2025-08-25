@@ -24,6 +24,9 @@ public record SagaCDC(
         @JsonProperty("bidder_id")
         Long bidderId,
 
+        @JsonProperty("payment_account_id")
+        Long paymentAccountId,
+
         @JsonProperty("new_bid_amount")
         BigDecimal newBidAmount,
 
@@ -32,6 +35,9 @@ public record SagaCDC(
 
         @JsonProperty("compensate_winning_bid_id")
         Long compensateWinningBidId,
+
+        @JsonProperty("compensate_winner_id")
+        Long compensateWinnerId,
 
         @JsonProperty("problem_detail")
         ProblemDetail problemDetail

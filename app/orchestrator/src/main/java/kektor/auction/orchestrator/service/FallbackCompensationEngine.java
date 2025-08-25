@@ -44,8 +44,8 @@ public class FallbackCompensationEngine {
 
     @DltHandler
     public void processDlt(@Payload(required = false) Saga saga,
-                           @Header(KafkaHeaders.EXCEPTION_FQCN) String exName,
-                           @Header(KafkaHeaders.EXCEPTION_MESSAGE) String exMessage) {
+                           @Header(KafkaHeaders.DLT_EXCEPTION_FQCN) String exName,
+                           @Header(KafkaHeaders.DLT_EXCEPTION_MESSAGE) String exMessage) {
         logHelper.logManualInterventionRequired(saga, exName, exMessage);
     }
 

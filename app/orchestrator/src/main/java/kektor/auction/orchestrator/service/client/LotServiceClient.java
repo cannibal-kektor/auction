@@ -24,6 +24,7 @@ public interface LotServiceClient {
                        @RequestParam("version") Long version,
                        @RequestParam("highestBid") BigDecimal highestBid,
                        @RequestParam("winningBidId") Long winningBidId,
+                       @RequestParam("winnerId") Long winnerId,
                        @RequestParam("isRollback") boolean isRollback);
 
 

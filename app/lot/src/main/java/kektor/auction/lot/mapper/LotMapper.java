@@ -18,6 +18,7 @@ public interface LotMapper {
     @Mapping(source = "lot.lotStat.bidsCount", target = "bidsCount")
     @Mapping(source = "lot.lotStat.highestBid", target = "highestBid")
     @Mapping(source = "lot.lotStat.winningBidId", target = "winningBidId")
+    @Mapping(source = "lot.lotStat.winnerId", target = "winnerId")
     @Mapping(source = "categories", target = "categories")
     LotDto toDto(Lot lot, Set<CategoryDto> categories);
 

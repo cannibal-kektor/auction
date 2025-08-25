@@ -21,7 +21,7 @@ public class Category {
     @SequenceGenerator(name = ID_GENERATOR,
             sequenceName = ID_GENERATOR_SEQUENCE_NAME,
             allocationSize = 20,
-            initialValue = 100)
+            initialValue = 1000)
     @GeneratedValue(generator = ID_GENERATOR)
     Long id;
 

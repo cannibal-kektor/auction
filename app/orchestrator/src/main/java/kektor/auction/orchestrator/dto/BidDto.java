@@ -12,6 +12,8 @@ public record BidDto(
 
         Long bidderId,
 
+        Long paymentAccountId,
+
         BigDecimal amount,
 
         Instant creationTime,
