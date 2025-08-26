@@ -7,13 +7,16 @@ CREATE SEQUENCE IF NOT EXISTS ID_SEQUENCE_GENERATOR
 
 CREATE TABLE IF NOT EXISTS payment_accounts
 (
-    id      BIGINT PRIMARY KEY,
-    balance NUMERIC(19, 4) NOT NULL DEFAULT 0.0000 CHECK (balance >= 0),
-    version BIGINT         NOT NULL CHECK (version >= 0),
-    user_id BIGINT         NOT NULL CHECK (user_id > 0),
+    id         BIGINT PRIMARY KEY,
+    balance    NUMERIC(19, 4) NOT NULL DEFAULT 0.0000 CHECK (balance >= 0),
+    version    BIGINT         NOT NULL CHECK (version >= 0),
+    user_id    BIGINT         NOT NULL CHECK (user_id > 0),
+    registration_date TIMESTAMPTZ    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT uq_user_account UNIQUE (user_id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_account_user ON payment_accounts (user_id);
 
 CREATE TABLE IF NOT EXISTS balance_operations
 (
@@ -22,30 +25,40 @@ CREATE TABLE IF NOT EXISTS balance_operations
     created_at     TIMESTAMPTZ    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     account_id     BIGINT         NOT NULL REFERENCES payment_accounts (id) ON DELETE CASCADE,
     operation_type VARCHAR(20)    NOT NULL CHECK (operation_type IN ('CREDIT', 'DEBIT')),
+    -- CreditOperation
+    credit_status  VARCHAR(20),
+    bid_id         BIGINT,
+    saga_id        BIGINT,
+    CONSTRAINT fk_operation_account FOREIGN KEY (account_id) REFERENCES payment_accounts (id),
 
-    CONSTRAINT fk_operation_account FOREIGN KEY (account_id) REFERENCES payment_accounts (id)
+    -- Checks for CREDIT
+    CONSTRAINT credit_status_check CHECK (
+        (operation_type = 'CREDIT' AND credit_status IN ('RESERVED', 'ACCEPTED', 'CANCELLED'))
+            OR (operation_type = 'DEBIT' AND credit_status IS NULL)
+        ),
+
+    CONSTRAINT bid_id_check CHECK (
+        (operation_type = 'CREDIT' AND bid_id > 0)
+            OR (operation_type = 'DEBIT' AND bid_id IS NULL)
+        ),
+
+    CONSTRAINT saga_id_check CHECK (
+        (operation_type = 'CREDIT' AND saga_id IS NOT NULL AND saga_id > 0)
+            OR (operation_type = 'DEBIT' AND saga_id IS NULL)
+        )
 );
 
-CREATE TABLE IF NOT EXISTS credit_operations
-(
-    operation_id BIGINT PRIMARY KEY REFERENCES balance_operations (id) ON DELETE CASCADE,
-    status       VARCHAR(20) NOT NULL CHECK (status IN ('RESERVED', 'ACCEPTED', 'CANCELLED')),
-    bid_id       BIGINT CHECK (bid_id > 0),
-    saga_id      BIGINT      NOT NULL CHECK (saga_id > 0),
-
-    CONSTRAINT uk_saga_id UNIQUE (saga_id)
-);
-
-CREATE TABLE IF NOT EXISTS debit_operations
-(
-    operation_id BIGINT PRIMARY KEY REFERENCES balance_operations (id) ON DELETE CASCADE
-);
-
+CREATE UNIQUE INDEX IF NOT EXISTS uk_saga_id ON balance_operations (saga_id)
+    WHERE operation_type = 'CREDIT';
 CREATE INDEX IF NOT EXISTS idx_operations_account ON balance_operations (account_id);
+
 CREATE INDEX IF NOT EXISTS idx_operations_created ON balance_operations (created_at);
-CREATE INDEX IF NOT EXISTS idx_credit_status ON credit_operations (status);
-CREATE INDEX IF NOT EXISTS idx_credit_bid ON credit_operations (bid_id);
-CREATE INDEX IF NOT EXISTS idx_account_user ON payment_accounts (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_credit_status ON balance_operations (credit_status)
+    WHERE operation_type = 'CREDIT';
+
+CREATE INDEX IF NOT EXISTS idx_credit_bid ON balance_operations (bid_id)
+    WHERE operation_type = 'CREDIT' AND bid_id IS NOT NULL;
 
 DROP TRIGGER IF EXISTS check_balance ON balance_operations;
 

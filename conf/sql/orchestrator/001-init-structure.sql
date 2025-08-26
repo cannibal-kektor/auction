@@ -10,19 +10,21 @@ CREATE TABLE IF NOT EXISTS saga
     saga_id                   BIGINT PRIMARY KEY,
     status                    VARCHAR(20)    NOT NULL,
     lot_id                    BIGINT         NOT NULL,
-    lot_version               BIGINT         NOT NULL,
-    creation_time                TIMESTAMPTZ    NOT NULL,
+    creation_time             TIMESTAMPTZ    NOT NULL,
     bidder_id                 BIGINT         NOT NULL,
+    payment_account_id        BIGINT         NOT NULL,
     new_bid_amount            NUMERIC(19, 4) NOT NULL,
     compensate_bid_amount     NUMERIC(19, 4) NOT NULL,
     compensate_winning_bid_id BIGINT         NOT NULL,
+    compensate_winner_id      BIGINT         NOT NULL,
     problem_detail            JSON,
 
     CONSTRAINT valid_status CHECK (status IN ('ACTIVE', 'STALLED', 'COMPLETED', 'COMPENSATED')),
     CONSTRAINT positive_lot_id CHECK (lot_id > 0),
-    CONSTRAINT non_negative_version CHECK (lot_version >= 0),
     CONSTRAINT positive_bidder_id CHECK (bidder_id > 0),
+    CONSTRAINT positive_payment_account_id CHECK (payment_account_id > 0),
     CONSTRAINT positive_winning_bid CHECK (compensate_winning_bid_id > 0),
+    CONSTRAINT positive_winner_id CHECK (compensate_winner_id > 0),
     CONSTRAINT positive_new_bid CHECK (new_bid_amount > 0),
     CONSTRAINT positive_compensate_bid CHECK (compensate_bid_amount > 0)
 );
@@ -42,9 +44,6 @@ $$
 BEGIN
     IF OLD.lot_id <> NEW.lot_id THEN
         RAISE EXCEPTION 'lot_id cannot be updated';
-    END IF;
-    IF OLD.lot_version <> NEW.lot_version THEN
-        RAISE EXCEPTION 'lot_version cannot be updated';
     END IF;
     IF OLD.creation_time <> NEW.creation_time THEN
         RAISE EXCEPTION 'creation_time cannot be updated';

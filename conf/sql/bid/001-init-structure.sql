@@ -1,25 +1,27 @@
 BEGIN;
 
 CREATE SEQUENCE IF NOT EXISTS id_sequence_generator
-    START WITH 1000
+    START WITH 5000
     INCREMENT BY 100
     CACHE 1;
 
 CREATE TABLE IF NOT EXISTS bid
 (
-    id            BIGINT PRIMARY KEY NOT NULL,
-    lot_id        BIGINT             NOT NULL CHECK (lot_id > 0),
-    bidder_id     BIGINT             NOT NULL CHECK (bidder_id > 0),
-    saga_id       BIGINT             NOT NULL CHECK (saga_id > 0),
-    amount        NUMERIC(38, 2)     NOT NULL CHECK (amount > 0),
-    creation_time TIMESTAMPTZ        NOT NULL,
-    status        VARCHAR(20)        NOT NULL CHECK (status IN ('PENDING', 'ACCEPTED', 'REJECTED', 'WON')),
+    id                 BIGINT PRIMARY KEY NOT NULL,
+    lot_id             BIGINT             NOT NULL CHECK (lot_id > 0),
+    bidder_id          BIGINT             NOT NULL CHECK (bidder_id > 0),
+    payment_account_id BIGINT             NOT NULL CHECK (payment_account_id > 0),
+    saga_id            BIGINT             NOT NULL CHECK (saga_id > 0),
+    amount             NUMERIC(38, 2)     NOT NULL CHECK (amount > 0),
+    creation_time      TIMESTAMPTZ        NOT NULL,
+    status             VARCHAR(20)        NOT NULL CHECK (status IN ('PENDING', 'ACCEPTED', 'REJECTED', 'WON')),
 
     CONSTRAINT uk_saga_id UNIQUE (saga_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_bid_lot ON bid (lot_id);
 CREATE INDEX IF NOT EXISTS idx_bid_bidder ON bid (bidder_id);
+CREATE INDEX IF NOT EXISTS idx_bid_payment_acc ON bid (payment_account_id);
 CREATE INDEX IF NOT EXISTS idx_bid_status ON bid (status);
 CREATE INDEX IF NOT EXISTS idx_bid_created ON bid (creation_time);
 
