@@ -29,7 +29,7 @@ public class QueryService {
         return queryImpl.getAll(requestFilter, pageable);
     }
 
-    public <Dto, Filter> Page<? extends Dto> getPage(Filter requestFilter, Pageable pageable) {
+    public <Dto, Filter> Page<Dto> getPage(Filter requestFilter, Pageable pageable) {
         var queryImpl = (RetrievableService<Dto, Filter>) queryRegistry.get(requestFilter.getClass());
         return queryImpl.getPage(requestFilter, pageable);
     }

@@ -3,11 +3,10 @@ package kektor.auction.query.controller;
 
 import jakarta.validation.Valid;
 import kektor.auction.query.dto.BidDto;
-import kektor.auction.query.dto.filter.BidRequestFilter;
-import kektor.auction.query.dto.filter.CategoryRequestFilter;
-import kektor.auction.query.dto.filter.LotRequestFilter;
+import kektor.auction.query.dto.CategoryDto;
+import kektor.auction.query.dto.LotDto;
+import kektor.auction.query.dto.filter.*;
 import kektor.auction.query.service.QueryService;
-import kektor.auction.query.validation.ValidSortingParameters;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,28 +32,24 @@ public class QueryApi {
 
     final QueryService queryService;
 
-
-    @GetMapping
-    public Callable<List<BidDto>> getAllBids(@Valid BidRequestFilter filter,
-                                             @ValidSortingParameters(SortType.BID)
-//                                                       Pageable pageable) {
-                                                       @PageableDefault(size = Integer.MAX_VALUE, sort = "amount", direction = Sort.Direction.DESC) Pageable pageable) {
+    @GetMapping(path = "/bids")
+    public Callable<List<BidDto>> getBids(@Valid BidRequestFilter filter,
+//                                             @ValidSortingParameters(SortType.BID)
+                                          @PageableDefault(size = Integer.MAX_VALUE, sort = "creationTime", direction = Sort.Direction.DESC) Pageable pageable) {
         return () -> queryService.getAll(filter, pageable);
     }
 
-    @GetMapping(params = "paged")
-    public Callable<Page<BidDto>> getPaged(@Valid BidRequestFilter requestFilter,
-                                                     @ValidSortingParameters(SortType.BID)
-//                                                     Pageable pageable) {
-                                                     @PageableDefault(size = Integer.MAX_VALUE, sort = "amount", direction = Sort.Direction.DESC) Pageable pageable) {
+    @GetMapping(path = "/bids", params = "paged")
+    public Callable<Page<BidDto>> getPagedBids(@Valid BidRequestFilter requestFilter,
+//                                           @ValidSortingParameters(SortType.BID)
+                                               @PageableDefault(size = Integer.MAX_VALUE, sort = "creationTime", direction = Sort.Direction.DESC) Pageable pageable) {
         return () -> queryService.getPage(requestFilter, pageable);
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_NDJSON_VALUE)
-    public ResponseEntity<ResponseBodyEmitter> streamAllBids(@Valid BidRequestFilter filter,
-                                                             @ValidSortingParameters(SortType.BID)
-//                                                              Pageable pageable) {
-                                                             @PageableDefault(size = Integer.MAX_VALUE, sort = "amount", direction = Sort.Direction.DESC) Pageable pageable) {
+    @GetMapping(path = "/bids", produces = MediaType.APPLICATION_NDJSON_VALUE)
+    public ResponseEntity<ResponseBodyEmitter> streamBids(@Valid BidRequestFilter filter,
+//                                                             @ValidSortingParameters(SortType.BID)
+                                                          @PageableDefault(size = Integer.MAX_VALUE, sort = "creationTime", direction = Sort.Direction.DESC) Pageable pageable) {
         var emitter = new ResponseBodyEmitter(-1L);
         queryService.streamAll(emitter, filter, pageable);
         return ResponseEntity.ok().
@@ -62,27 +57,24 @@ public class QueryApi {
                 body(emitter);
     }
 
-    @GetMapping
-    public Callable<List<? extends CategoryDTO>> getAll(@Valid CategoryRequestFilter requestFilter,
-                                                        @ValidSortingParameters(ValidSortingParameters.SortType.CATEGORY)
-//                                                        Pageable pageable) {
-                                                        @PageableDefault(size = Integer.MAX_VALUE, sort = "id") Pageable pageable) {
+    @GetMapping(path = "/categories")
+    public Callable<List<CategoryDto>> getCategories(@Valid CategoryRequestFilter requestFilter,
+//                                                               @ValidSortingParameters(ValidSortingParameters.SortType.CATEGORY)
+                                                     @PageableDefault(size = Integer.MAX_VALUE, sort = "name") Pageable pageable) {
         return () -> queryService.getAll(requestFilter, pageable);
     }
 
-    @GetMapping(params = "paged")
-    public Callable<Page<? extends CategoryDTO>> getPaged(@Valid CategoryRequestFilter requestFilter,
-                                                          @ValidSortingParameters(ValidSortingParameters.SortType.CATEGORY)
-//                                                          Pageable pageable) {
-                                                          @PageableDefault(size = Integer.MAX_VALUE, sort = "id") Pageable pageable) {
+    @GetMapping(path = "/categories", params = "paged")
+    public Callable<Page<CategoryDto>> getPagedCategories(@Valid CategoryRequestFilter requestFilter,
+//                                                          @ValidSortingParameters(ValidSortingParameters.SortType.CATEGORY)
+                                                          @PageableDefault(size = Integer.MAX_VALUE, sort = "name") Pageable pageable) {
         return () -> queryService.getPage(requestFilter, pageable);
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_NDJSON_VALUE)
-    public ResponseEntity<ResponseBodyEmitter> streamAllCategories(@Valid CategoryRequestFilter requestFilter,
-                                                                   @ValidSortingParameters(ValidSortingParameters.SortType.CATEGORY)
-//                                                                   Pageable pageable) {
-                                                                   @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+    @GetMapping(path = "/categories", produces = MediaType.APPLICATION_NDJSON_VALUE)
+    public ResponseEntity<ResponseBodyEmitter> streamCategories(@Valid CategoryRequestFilter requestFilter,
+//                                                                   @ValidSortingParameters(ValidSortingParameters.SortType.CATEGORY)
+                                                                   @PageableDefault(size = Integer.MAX_VALUE, sort = "name") Pageable pageable) {
         var emitter = new ResponseBodyEmitter(-1L);
         queryService.streamAll(emitter, requestFilter, pageable);
         return ResponseEntity.ok().
@@ -90,28 +82,25 @@ public class QueryApi {
                 body(emitter);
     }
 
-    @GetMapping
-    public Callable<List<? extends ItemDTO>> getAll(@Valid LotRequestFilter requestFilter,
-                                                    @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
-//                                                    Pageable pageable) {
-                                                    @PageableDefault(size = Integer.MAX_VALUE, sort = "id") Pageable pageable) {
+    @GetMapping(path = "/lots")
+    public Callable<List<LotDto>> getLots(@Valid LotRequestFilter requestFilter,
+//                                                    @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                         @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return () -> queryService.getAll(requestFilter, pageable);
     }
 
 
-    @GetMapping(params = "paged")
-    public Callable<Page<? extends ItemDTO>> getPaged(@Valid LotRequestFilter requestFilter,
-                                                      @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
-//                                                      Pageable pageable) {
-                                                      @PageableDefault(size = Integer.MAX_VALUE, sort = "id") Pageable pageable) {
+    @GetMapping(path = "/lots", params = "paged")
+    public Callable<Page<LotDto>> getLotsPaged(@Valid LotRequestFilter requestFilter,
+//                                                      @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                           @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return () -> queryService.getPage(requestFilter, pageable);
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_NDJSON_VALUE)
-    public ResponseEntity<ResponseBodyEmitter> streamAll(@Valid LotRequestFilter requestFilter,
-                                                         @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
-//                                                         Pageable pageable) {
-                                                         @PageableDefault(size = Integer.MAX_VALUE, sort = "id") Pageable pageable) {
+    @GetMapping(path = "/lots",produces = MediaType.APPLICATION_NDJSON_VALUE)
+    public ResponseEntity<ResponseBodyEmitter> streamLots(@Valid LotRequestFilter requestFilter,
+//                                                         @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                                         @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         var emitter = new ResponseBodyEmitter(-1L);
         queryService.streamAll(emitter, requestFilter, pageable);
         return ResponseEntity.ok().
@@ -119,4 +108,82 @@ public class QueryApi {
                 body(emitter);
     }
 
+    @GetMapping(path = "/operations")
+    public Callable<List<LotDto>> getOperations(@Valid BalanceOpRequestFilter requestFilter,
+//                                                    @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                          @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return () -> queryService.getAll(requestFilter, pageable);
+    }
+
+
+    @GetMapping(path = "/operations", params = "paged")
+    public Callable<Page<LotDto>> getPagedOperations(@Valid BalanceOpRequestFilter requestFilter,
+//                                                      @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                               @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return () -> queryService.getPage(requestFilter, pageable);
+    }
+
+    @GetMapping(path = "/operations",produces = MediaType.APPLICATION_NDJSON_VALUE)
+    public ResponseEntity<ResponseBodyEmitter> streamOperations(@Valid BalanceOpRequestFilter requestFilter,
+//                                                         @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                                          @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        var emitter = new ResponseBodyEmitter(-1L);
+        queryService.streamAll(emitter, requestFilter, pageable);
+        return ResponseEntity.ok().
+                contentType(MediaType.APPLICATION_NDJSON).
+                body(emitter);
+    }
+
+
+    @GetMapping(path = "/accounts")
+    public Callable<List<LotDto>> getAccounts(@Valid PaymentAccountFilter requestFilter,
+//                                                    @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                                @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return () -> queryService.getAll(requestFilter, pageable);
+    }
+
+
+    @GetMapping(path = "/accounts", params = "paged")
+    public Callable<Page<LotDto>> getPagedAccounts(@Valid PaymentAccountFilter requestFilter,
+//                                                      @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                                     @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return () -> queryService.getPage(requestFilter, pageable);
+    }
+
+    @GetMapping(path = "/accounts",produces = MediaType.APPLICATION_NDJSON_VALUE)
+    public ResponseEntity<ResponseBodyEmitter> streamAccounts(@Valid PaymentAccountFilter requestFilter,
+//                                                         @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                                                @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        var emitter = new ResponseBodyEmitter(-1L);
+        queryService.streamAll(emitter, requestFilter, pageable);
+        return ResponseEntity.ok().
+                contentType(MediaType.APPLICATION_NDJSON).
+                body(emitter);
+    }
+
+    @GetMapping(path = "/sagas")
+    public Callable<List<LotDto>> getSagas(@Valid SagaRequestFilter requestFilter,
+//                                                    @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                              @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return () -> queryService.getAll(requestFilter, pageable);
+    }
+
+
+    @GetMapping(path = "/sagas", params = "paged")
+    public Callable<Page<LotDto>> getPagedSagas(@Valid SagaRequestFilter requestFilter,
+//                                                      @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                                   @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return () -> queryService.getPage(requestFilter, pageable);
+    }
+
+    @GetMapping(path = "/sagas",produces = MediaType.APPLICATION_NDJSON_VALUE)
+    public ResponseEntity<ResponseBodyEmitter> streamSagas(@Valid SagaRequestFilter requestFilter,
+//                                                         @ValidSortingParameters(ValidSortingParameters.SortType.ITEM)
+                                                              @PageableDefault(size = Integer.MAX_VALUE, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        var emitter = new ResponseBodyEmitter(-1L);
+        queryService.streamAll(emitter, requestFilter, pageable);
+        return ResponseEntity.ok().
+                contentType(MediaType.APPLICATION_NDJSON).
+                body(emitter);
+    }
 }
